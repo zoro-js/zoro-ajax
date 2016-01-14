@@ -58,7 +58,7 @@ pro.doSend = function() {
             src: proxyUrl,
             onload: function(event) {
                 var cbs = cache[proxyUrl];
-                cache[proxyUrl] = dom.getElement(event).contentWindow;
+                cache[proxyUrl] = dom.target(event).contentWindow;
                 cbs.forEach(function(cb) {
                     try {
                         cb();
@@ -70,6 +70,7 @@ pro.doSend = function() {
         });
         return;
     }
+    if (self.aborted) {return;}
     // send message to frame
     var key = self.key = util.uniqueID();
     cache[key] = self;
@@ -81,7 +82,15 @@ pro.doSend = function() {
         timeout: 0
     }, options);
     data.key = key;
-    frame.postMessage(JSON.stringify(data));
+    frame.postMessage(JSON.stringify(data), '*');
+    self.afterSend();
 };
 
-pro.abort = function() {};
+pro.abort = function() {
+    var self = this;
+    self.aborted = true;
+    delete cache[self.key];
+    sp.abort.call(this);
+};
+
+module.exports = ProxyFrame;

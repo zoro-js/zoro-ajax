@@ -35,6 +35,7 @@ pro.doSend = function() {
         xhr.withCredentials = true;
     }
     xhr.send(options.data);
+    self.afterSend();
 };
 
 pro.onProgress = function(event) {

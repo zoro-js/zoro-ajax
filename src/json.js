@@ -1,7 +1,7 @@
 var util = require('zoro-base/src/util');
 var ajax = require('./ajax');
 
-var json = ajax.json = (function() {
+var json = (function() {
     var regJson = /json/i;
     var regPost = /post/i;
     return function(url, options) {
@@ -22,5 +22,9 @@ var json = ajax.json = (function() {
         return ajax(url, options);
     };
 }());
+
+util.mixin(json, ajax);
+
+ajax.json = json;
 
 module.exports = json;

@@ -1,8 +1,8 @@
 var json = require('json');
 var prepare = require('./prepare');
+var url = prepare.getUrl('json');
 
-describe('json', function() {
-    var url = prepare.getUrl('json');
+xdescribe('json', function() {
 
     it('default', function(done) {
         json(url, {

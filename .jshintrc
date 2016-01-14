@@ -10,19 +10,20 @@
     "noarg": true,
     "globals": {
         "__comment": "true means read-write, false means read-only",
-        "window": true,
+        "console": true,
+        "JSON": false,
         "location": true,
+        "document": true,
+        "window": true,
+        "XMLHttpRequest": false,
         "encodeURLComponent": false,
         "decodeURLComponent": false,
         "clearTimeout": false,
         "setTimeout": false,
-        "console": true,
-        "JSON": false,
         "localStorage": true,
         "module": true,
         "require": false,
         "Promise": false,
-        "process": false,
-        "XMLHttpRequest": false
+        "process": false
     }
 }

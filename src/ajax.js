@@ -36,7 +36,7 @@ function clear(sn) {
         return;
     }
     c.req.destroy();
-    delete c[sn];
+    delete cache[sn];
 }
 
 function parseExtData(c, data) {

@@ -14,6 +14,9 @@ function Proxy(options) {
     if (options.onbeforesend) {
         self.once('beforesend', options.onbeforesend);
     }
+    if (options.onaftersend) {
+        self.once('aftersend', options.onaftersend);
+    }
     // handle options
     options = self.options = util.fetch({
         method: 'GET',
@@ -23,7 +26,8 @@ function Proxy(options) {
         headers: {},
         cookie: false,
         timeout: 6000,
-        type: 'text'
+        type: 'text',
+        proxyUrl: ''
     }, options);
     // headers
     var headers = options.headers;
@@ -53,6 +57,13 @@ pro.send = function() {
 };
 
 pro.doSend = f;
+
+pro.afterSend = function() {
+    var self = this;
+    setTimeout(function() {
+        self.emit('aftersend', self.options);
+    }, 0);
+};
 
 pro.onLoad = function(event) {
     var self = this;

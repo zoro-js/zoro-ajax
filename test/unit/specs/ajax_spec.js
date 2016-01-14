@@ -1,8 +1,8 @@
 var ajax = require('ajax');
 var prepare = require('./prepare');
+var url = prepare.getUrl('ajax');
 
-describe('ajax', function() {
-    var url = prepare.getUrl('ajax');
+xdescribe('ajax', function() {
     var query = {
         name: 'zyy',
         age: 26
@@ -24,6 +24,9 @@ describe('ajax', function() {
                 }));
                 expect(options.cookie).toBe(false);
                 expect(options.type).toBe('text');
+            },
+            onaftersend: function(options) {
+                expect(options).toBe(jasmine.any(Object));
             },
             onload: function(result) {
                 expect(result).toEqual(jasmine.any(String));
@@ -80,7 +83,7 @@ describe('ajax', function() {
         });
     });
 
-    it('cancel', function(done) {
+    it('abort', function(done) {
         var sn = ajax(urlWithQuery, {
             onload: function(obj) {
                 done.fail('should not onload');

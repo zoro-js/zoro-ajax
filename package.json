@@ -21,7 +21,7 @@
   "homepage": "https://github.com/zoro-js/zoro-ajax#readme",
   "dependencies": {
     "wolfy87-eventemitter": "^4.3.0",
-    "zoro-base": "^1.0.5"
+    "zoro-base": "^1.0.7"
   },
   "devDependencies": {
     "express": "^4.13.3",
