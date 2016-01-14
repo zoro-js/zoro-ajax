@@ -1,0 +1,28 @@
+{
+    "es3": true,
+    "strict": "implied",
+    "curly": true,
+    "forin": true,
+    "eqeqeq": true,
+    "eqnull": true,
+    "undef": true,
+    "unused": true,
+    "noarg": true,
+    "globals": {
+        "__comment": "true means read-write, false means read-only",
+        "window": true,
+        "location": true,
+        "encodeURLComponent": false,
+        "decodeURLComponent": false,
+        "clearTimeout": false,
+        "setTimeout": false,
+        "console": true,
+        "JSON": false,
+        "localStorage": true,
+        "module": true,
+        "require": false,
+        "Promise": false,
+        "process": false,
+        "XMLHttpRequest": false
+    }
+}

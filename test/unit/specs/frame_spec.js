@@ -1,0 +1,1 @@
+var path = 'https://localhost:9527/res/cors/nej_proxy_frame.html';

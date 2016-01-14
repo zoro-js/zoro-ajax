@@ -16,7 +16,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'test/unit/specs/index.js'
+        'test/unit/specs/index.js'
     ],
 
 
