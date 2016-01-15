@@ -32,12 +32,27 @@ app.get('/json', function(req, res) {
 app.post('/upload', upload.any(), function(req, res) {
     var result;
     var files = req.files;
+    var body = req.body;
+    var hasBody = Object.keys(body).length > 0;
     if (req.query._proxy_ === 'form') {
         result = fse.readFileSync(__dirname + '/web/res/nej_proxy_upload.html', 'utf8');
-        result = result.replace(/window\.result\s=\s'.*?'/i, "window.result = '" + JSON.stringify(files) + "'");
+        var insert = files;
+        if (hasBody) {
+            insert = {
+                files: files,
+                body: body
+            };
+        }
+        result = result.replace(/window\.result\s=\s'.*?'/i, "window.result = '" + JSON.stringify(insert) + "'");
         res.setHeader('Content-Type', 'text/html');
     } else {
         result = files;
+        if (hasBody) {
+            result = {
+                files: files,
+                body: body
+            };
+        }
     }
     res.send(result);
 });

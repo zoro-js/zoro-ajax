@@ -6,7 +6,7 @@ var url = prepare.getHttpsUrl('upload');
 var supportFormData = !!window.FormData;
 var supportBlob = !!window.Blob;
 
-xdescribe('upload via iframe', function() {
+describe('upload via iframe', function() {
     var domStr;
     var fileInput;
     var defaultTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -23,12 +23,13 @@ xdescribe('upload via iframe', function() {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = defaultTimeout;
     });
 
-    xit('upload input', function(done) {
+    it('upload input', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
                 mode: 'iframe',
                 data: {
-                    input: fileInput
+                    input: fileInput,
+                    bar: 'baz'
                 },
                 onload: function(obj) {
                     expect(obj).toEqual(jasmine.any(Object));

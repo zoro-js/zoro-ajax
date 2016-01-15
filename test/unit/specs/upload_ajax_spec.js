@@ -6,7 +6,7 @@ var url = prepare.getHttpsUrl('upload');
 var supportFormData = !!window.FormData;
 var supportBlob = !!window.Blob;
 
-describe('upload via ajax', function() {
+xdescribe('upload via ajax', function() {
     var domStr;
     var fileInput;
     var defaultTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -23,11 +23,12 @@ describe('upload via ajax', function() {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = defaultTimeout;
     });
     
-    it('upload input', function(done) {
+    xit('upload input', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
                 data: {
-                    input: fileInput
+                    input: fileInput,
+                    foo: 'bar'
                 },
                 onuploading: function(obj) {
                     // not null or undefined
