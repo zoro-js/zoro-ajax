@@ -1,7 +1,7 @@
 var util = require('zoro-base/src/util');
-var ProxyXhr = require('proxy/xhr');
-var ProxyUpload = require('proxy/upload');
-var ProxyFrame = require('proxy/frame');
+var ProxyXhr = require('./proxy/xhr');
+var ProxyUpload = require('./proxy/upload');
+var ProxyFrame = require('./proxy/frame');
 
 var cache = {};
 var doFilter = util.f;
