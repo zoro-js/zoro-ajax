@@ -70,6 +70,7 @@ pro.doSend = function() {
         });
         return;
     }
+    // check aborted
     if (self.aborted) {return;}
     // send message to frame
     var key = self.key = util.uniqueID();
@@ -90,7 +91,7 @@ pro.abort = function() {
     var self = this;
     self.aborted = true;
     delete cache[self.key];
-    sp.abort.call(this);
+    sp.abort.call(self);
 };
 
 module.exports = ProxyFrame;

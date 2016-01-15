@@ -4,7 +4,7 @@ var url = prepare.getUrl('json');
 var httpsUrl = prepare.getHttpsUrl('json');
 var httpsProxyUrl = 'https://localhost:9527/res/nej_proxy_frame.html';
 
-describe('frame', function() {
+xdescribe('frame', function() {
     xdescribe('tested', function() {
     });
     it('default', function(done) {
@@ -21,6 +21,7 @@ describe('frame', function() {
             }
         });
     });
+    
     it('proxyUrl', function(done) {
         json(httpsUrl, {
             mode: 'iframe',
@@ -31,6 +32,7 @@ describe('frame', function() {
             }
         });
     });
+
     it('abort immediately', function(done) {
         var sn = json(url, {
             mode: 'iframe',
@@ -41,13 +43,15 @@ describe('frame', function() {
                 expect(obj).toEqual(jasmine.objectContaining({
                     code: 'abort'
                 }));
-                // 1s 后完成, 这样可以在代码里面检测异步执行的情况, 否则直接完成的话, 没有机会检测
+                // 1s 后完成, 这样可以在代码里面检测请求是否发出 frame.js#doSend: check aborted
+                // 直接完成的话, 没有机会检测
                 setTimeout(done, 1000);
             }
         });
         json.abort(sn);
     });
-    it('abort onaftersend', function(done) {
+
+    it('abort after send', function(done) {
         var sn = json(url, {
             mode: 'iframe',
             onaftersend: function(options) {
@@ -60,7 +64,8 @@ describe('frame', function() {
                 expect(obj).toEqual(jasmine.objectContaining({
                     code: 'abort'
                 }));
-                // 1s 后完成, 这样可以在代码里面检测异步执行的情况, 否则直接完成的话, 没有机会检测
+                // 1s 后完成, 这样可以在代码里面检测请求完成后的情况 frame.js#init#onMessage
+                // 直接完成的话, 没有机会检测
                 setTimeout(done, 1000);
             }
         });

@@ -27,6 +27,10 @@ function Proxy(options) {
         cookie: false,
         timeout: 6000,
         type: 'text',
+        // 文件上传用到的参数
+        form: null,
+        input: null,
+        // iframe 模式用到的代理地址
         proxyUrl: ''
     }, options);
     // headers
@@ -47,11 +51,11 @@ pro.send = function() {
         try {
             self.emit('beforesend', options);
         } catch (e) {
-            console.error(e);
+            console.error('ignore', e);
         }
         self.doSend();
     } catch (e) {
-        console.error(e);
+        console.error('ignore', e);
         self.onError('serverError', '请求失败:' + e.message);
     }
 };
@@ -78,15 +82,17 @@ pro.onLoad = function(event) {
         });
         return;
     }
-    // onload
+    // parse json
     if (options.type === 'json') {
         try {
             result = JSON.parse(result);
         } catch(e) {
-            console.error(e);
-            result = null;
+            console.error('ignore', e);
+            self.onError('parseError', result);
+            return;
         }
     }
+    // onload
     self.emit('load', result);
 };
 

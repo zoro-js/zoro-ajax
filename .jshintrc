@@ -15,6 +15,7 @@
         "location": true,
         "document": true,
         "window": true,
+        "FormData": false,
         "XMLHttpRequest": false,
         "encodeURLComponent": false,
         "decodeURLComponent": false,

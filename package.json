@@ -20,11 +20,13 @@
   },
   "homepage": "https://github.com/zoro-js/zoro-ajax#readme",
   "dependencies": {
+    "jshint": "^2.9.1",
     "wolfy87-eventemitter": "^4.3.0",
-    "zoro-base": "^1.0.7"
+    "zoro-base": "^1.0.11"
   },
   "devDependencies": {
     "express": "^4.13.3",
+    "fs-extra": "^0.26.4",
     "gulp": "^3.9.0",
     "gulp-jshint": "^2.0.0",
     "gulp-shell": "^0.5.1",

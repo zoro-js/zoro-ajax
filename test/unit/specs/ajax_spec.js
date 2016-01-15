@@ -1,13 +1,13 @@
 var ajax = require('ajax');
 var prepare = require('./prepare');
 var url = prepare.getUrl('ajax');
+var query = {
+    name: 'zyy',
+    age: 26
+};
+var urlWithQuery = url + '?name=zyy&age=26';
 
 xdescribe('ajax', function() {
-    var query = {
-        name: 'zyy',
-        age: 26
-    };
-    var urlWithQuery = url + '?name=zyy&age=26';
 
     describe('tested', function() {
     });
@@ -97,6 +97,22 @@ xdescribe('ajax', function() {
         });
         ajax.abort(sn);
     });
-    // options.mode TODO
-    // options.upload TODO
+    it('abort after send', function(done) {
+        sn = ajax(urlWithQuery, {
+            onaftersend: function() {
+                ajax.abort(sn);
+            },
+            onload: function() {
+                done.fail('should not onload');
+            },
+            onerror: function(obj) {
+                expect(obj).toEqual(jasmine.objectContaining({
+                    code: 'abort'
+                }));
+                // 1s 后完成, 这样可以在代码里面检测异步请求的情况, 主要看有没有走到 ajax.js#callback
+                // 直接完成的话, 没有机会检测
+                setTimeout(done, 1000);
+            }
+        });
+    });
 });
