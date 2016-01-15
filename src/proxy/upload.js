@@ -132,13 +132,18 @@ pro.checkResult = function() {
 };
 
 pro.onLoad = function(result) {
-    sp.onLoad.call(this, {
+    var self = this;
+    sp.onLoad.call(self, {
         status: 200,
         result: result
     });
+    // do the destroy work
+    dom.remove(self.form);
+    dom.remove(self.iframe);
+    sp.destroy.call(self);
 };
 
-// do nothing when destroy, let the iframe load, so we can restoreFiles.
+// do nothing when destroy, this will let the iframe load, so we can restoreFiles.
 // pro.destroy = function() {
 //     var self = this;
 //     dom.remove(self.form);
