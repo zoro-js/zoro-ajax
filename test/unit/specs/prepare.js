@@ -1,7 +1,7 @@
 var obj = {};
 
 var httpPort = 7259;
-obj.getUrl = function get(path) {
+obj.getUrl = obj.getHttpUrl = function get(path) {
     return 'http://localhost:' + httpPort + '/' + path;
 };
 

@@ -2,7 +2,7 @@ var util = require('zoro-base/src/util');
 var dom = require('zoro-base/src/dom');
 var upload = require('upload');
 var prepare = require('./prepare');
-var url = prepare.getHttpsUrl('upload');
+var url = prepare.getHttpUrl('upload');
 var supportFormData = !!window.FormData;
 var supportBlob = !!window.Blob;
 
@@ -26,6 +26,26 @@ describe('upload via iframe', function() {
     it('upload input', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
+                mode: 'iframe',
+                data: {
+                    input: fileInput,
+                    bar: 'baz'
+                },
+                onload: function(obj) {
+                    expect(obj).toEqual(jasmine.any(Object));
+                    done();
+                },
+                onerror: function(obj) {
+                    done.fail(JSON.stringify(obj));
+                }
+            });
+        });
+    });
+
+    it('upload input', function(done) {
+        dom.on(fileInput, 'change', function() {
+            upload(url, {
+                putFileAtEnd: true,
                 mode: 'iframe',
                 data: {
                     input: fileInput,

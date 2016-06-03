@@ -30,6 +30,8 @@ function Proxy(options) {
         // 文件上传用到的参数
         form: null,
         input: null,
+        // 是否将文件放在末尾
+        putFileAtEnd: false,
         // iframe 模式用到的代理地址
         proxyUrl: ''
     }, options);
@@ -47,17 +49,19 @@ var pro = Proxy.prototype = Object.create(EventEmitter.prototype);
 pro.send = function() {
     var self = this;
     var options = self.options;
-    try {
+    setTimeout(function () {
         try {
-            self.emit('beforesend', options);
+            try {
+                self.emit('beforesend', options);
+            } catch (e) {
+                console.error('ignore', e);
+            }
+            self.doSend();
         } catch (e) {
             console.error('ignore', e);
+            self.onError('serverError', '请求失败:' + e.message);
         }
-        self.doSend();
-    } catch (e) {
-        console.error('ignore', e);
-        self.onError('serverError', '请求失败:' + e.message);
-    }
+    }, 0)
 };
 
 pro.doSend = f;

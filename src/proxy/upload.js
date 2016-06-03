@@ -1,4 +1,5 @@
 var util = require('zoro-base/src/util');
+var pu = require('./util');
 var dom = require('zoro-base/src/dom');
 var Proxy = require('./index');
 
@@ -58,7 +59,7 @@ pro.doSend = function() {
     var files = [];
     var fileClones = [];
     if (data) {
-        Object.keys(data).forEach(function(key) {
+        pu.getKeys(data, options.putFileAtEnd).forEach(function(key) {
             var value = data[key];
             if (value.tagName && value.tagName.toUpperCase() === 'INPUT') {
                 if (value.type === 'file') {

@@ -19,8 +19,12 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.get('/', function (req, res) {
+    res.send('hello')
+})
+
 app.get('/ajax', function(req, res) {
-    res.send('hello');
+    res.send('ajax');
 });
 
 app.get('/json', function(req, res) {

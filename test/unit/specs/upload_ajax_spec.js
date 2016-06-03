@@ -2,11 +2,11 @@ var util = require('zoro-base/src/util');
 var dom = require('zoro-base/src/dom');
 var upload = require('upload');
 var prepare = require('./prepare');
-var url = prepare.getHttpsUrl('upload');
+var url = prepare.getHttpUrl('upload');
 var supportFormData = !!window.FormData;
 var supportBlob = !!window.Blob;
 
-xdescribe('upload via ajax', function() {
+describe('upload via ajax', function() {
     var domStr;
     var fileInput;
     var defaultTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -23,9 +23,34 @@ xdescribe('upload via ajax', function() {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = defaultTimeout;
     });
     
-    xit('upload input', function(done) {
+    it('upload input', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
+                data: {
+                    input: fileInput,
+                    foo: 'bar'
+                },
+                onuploading: function(obj) {
+                    // not null or undefined
+                    expect(obj.total).toEqual(jasmine.any(Number));
+                    expect(obj.loaded).toEqual(jasmine.any(Number));
+                },
+                onload: function(obj) {
+                    expect(obj).toEqual(jasmine.any(Object));
+                    done();
+                },
+                onerror: function(obj) {
+                    done.fail(JSON.stringify(obj));
+                }
+            });
+        });
+        fileInput.click();
+    });
+    
+    it('upload input', function(done) {
+        dom.on(fileInput, 'change', function() {
+            upload(url, {
+                putFileAtEnd: true,
                 data: {
                     input: fileInput,
                     foo: 'bar'
