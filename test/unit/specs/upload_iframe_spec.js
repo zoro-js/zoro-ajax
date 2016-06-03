@@ -23,7 +23,7 @@ describe('upload via iframe', function() {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = defaultTimeout;
     });
 
-    it('upload input', function(done) {
+    xit('upload input', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
                 mode: 'iframe',

@@ -2,13 +2,14 @@
 * @Author: Zhang Yingya(hzzhangyingya)
 * @Date:   2016-06-03 15:07:41
 * @Last Modified by:   Zhang Yingya(hzzhangyingya)
-* @Last Modified time: 2016-06-03 15:40:41
+* @Last Modified time: 2016-06-03 16:13:45
 */
 
 var util = {}
 
 util.isFileInput = function (value) {
-  return value.tagName && value.tagName.toUpperCase() === 'INPUT'
+  return (value.tagName && value.tagName.toUpperCase() === 'INPUT') ||
+    (window.Blob && value instanceof window.Blob)
 }
 
 /**

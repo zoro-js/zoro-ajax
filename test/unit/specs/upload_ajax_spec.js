@@ -23,7 +23,7 @@ describe('upload via ajax', function() {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = defaultTimeout;
     });
     
-    it('upload input', function(done) {
+    xit('upload input', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
                 data: {
@@ -47,7 +47,7 @@ describe('upload via ajax', function() {
         fileInput.click();
     });
     
-    it('upload input', function(done) {
+    it('upload input putFileAtEnd', function(done) {
         dom.on(fileInput, 'change', function() {
             upload(url, {
                 putFileAtEnd: true,
@@ -77,7 +77,8 @@ describe('upload via ajax', function() {
         dom.on(fileInput, 'change', function() {
             upload(url, {
                 data: {
-                    input: fileInput
+                    input: fileInput,
+                    foo: 'bar'
                 },
                 onload: function(obj) {
                     debugger;
@@ -99,7 +100,34 @@ describe('upload via ajax', function() {
                 [].forEach.call(files, function(file) {
                     data[file.name] = file;
                 });
+                data.foo = 'bar'
                 upload(url, {
+                    data: data,
+                    onload: function(obj) {
+                        expect(obj).toEqual(jasmine.any(Object));
+                        done();
+                    },
+                    onerror: function(obj) {
+                        done.fail(JSON.stringify(obj));
+                    }
+                });
+            });
+        } else {
+            done();
+        }
+    });
+
+    it('upload File object putFileAtEnd', function(done) {
+        if (supportFormData) {
+            dom.on(fileInput, 'change', function() {
+                var data = {};
+                var files = fileInput.files;
+                [].forEach.call(files, function(file) {
+                    data['File-' + file.name] = file;
+                });
+                data.foo = 'bar'
+                upload(url, {
+                    putFileAtEnd: true,
                     data: data,
                     onload: function(obj) {
                         expect(obj).toEqual(jasmine.any(Object));
@@ -121,7 +149,31 @@ describe('upload via ajax', function() {
             var blob = util.blobFromDataURL(dataURL);
             upload(url, {
                 data: {
-                    blobFile: blob
+                    blobFile: blob,
+                    foo: 'bar'
+                },
+                onload: function(obj) {
+                    expect(obj).toEqual(jasmine.any(Object));
+                    done();
+                },
+                onerror: function(obj) {
+                    done.fail(JSON.stringify(obj));
+                }
+            });
+        } else {
+            done();
+        }
+    });
+
+    it('upload Blob object putFileAtEnd', function(done) {
+        if (supportBlob) {
+            var dataURL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAyADIDASIAAhEBAxEB/8QAGgABAAMBAQEAAAAAAAAAAAAAAAIEBgUDAf/EACwQAAEEAQMCBQMFAQAAAAAAAAEAAgMRBAUSISIxBhNBUWEUMnEjkaGxstH/xAAaAQACAwEBAAAAAAAAAAAAAAAAAQIDBAUG/8QAIREAAgIBAwUBAAAAAAAAAAAAAAECERIEFCExM0FxodH/2gAMAwEAAhEDEQA/ANkiKtm5gxI203fK87Y2XVnv+w7lXNpK2ebLKhHMyUuDHbtpokdr9lksjPzM187pMowYEBIfKw7TIR3ArsL4vuquJNlYenYub9TPE2U1I272lx4cGngjtYPp8rPuoWLI3SLlaTqr8pz8XLa2PNiHW1vZw9CPhdVXxkpK0MIiKQBZzXcgxZGVJz+hh20D3cTf+QtE40LDS4+gaLJXE13FfFqNSxyRvkg8qTpI2HktPNe7gVRqe2x4tqzh5OP5PhAxMaDULXHn1sElWtQo+HJdvb6cEbvwP5VbLex3hzJxnSmSXHjDJKFciq49vlT1SYjw8xrTuknYyNu1v3E1dD8WuZza9kPwSymAaRnMNzF7GFx4LmubyCtoOyxpx/q9UwtMi3mPGAllcfgU3n3WyW/SJ4EkERFrA+EWORahkxszJnS5QEz3MEZMguwBX9eq9FFzA4EEWCk0n1HbqjN5GmQyajKxkhDiwxuO8dba+1xruOVX1DCZp2JFPNlDysZrY4uN5DjxurgE178LRnToDN5vXd9r4UpNPxZQBLE14BsB3ItZ9tF3Y4OKmnNWvPNfTx0zAxsKHdj9Zl63yu5dIT6n/ivqLWNY3a0ABSWhJJUiIRETAIiIAIiIAIiIAIiIA//Z';
+            var blob = util.blobFromDataURL(dataURL);
+            upload(url, {
+                putFileAtEnd: true,
+                data: {
+                    blobFile: blob,
+                    foo: 'bar'
                 },
                 onload: function(obj) {
                     expect(obj).toEqual(jasmine.any(Object));
