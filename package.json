@@ -2,7 +2,7 @@
   "name": "zoro-ajax",
   "version": "1.0.7",
   "description": "ajax",
-  "main": "index.js",
+  "main": "dist/zoro-ajax.js",
   "scripts": {
     "env": "env",
     "clean": "run-p -lns clean:*",
