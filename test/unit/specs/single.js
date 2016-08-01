@@ -1,2 +1,1 @@
-describe('single', function() {
-});
+describe('single', function () {})

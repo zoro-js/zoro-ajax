@@ -1,92 +1,100 @@
-var util = require('zoro-base/src/util');
-var ProxyXhr = require('./proxy/xhr');
-var ProxyUpload = require('./proxy/upload');
-var ProxyFrame = require('./proxy/frame');
+/**
+* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+* @Date:   2016-01-06T16:44:26+08:00
+* @Email:  zyy7259@gmail.com
+* @Last modified by:   zyy
+* @Last modified time: 2016-08-01T15:04:59+08:00
+*/
 
-var cache = {};
-var doFilter = util.f;
+var util = require('zoro-base')
+var ProxyXhr = require('./proxy/xhr')
+var ProxyUpload = require('./proxy/upload')
+var ProxyFrame = require('./proxy/frame')
 
-function getProxyByMode(options) {
-    var mode = options.mode;
-    var Constructor = ProxyXhr;
-    // 如果是 IE 8/9, 那么使用 iframe 模式
-    if (!window.FormData) {
-        mode = 'iframe';
-    }
-    if (mode === 'iframe') {
-        Constructor = options.upload ? ProxyUpload: ProxyFrame;
-    }
-    return new Constructor(options);
+var cache = {}
+var doFilter = util.f
+
+function getProxyByMode (options) {
+  var mode = options.mode
+  var Constructor = ProxyXhr
+  // 如果是 IE 8/9, 那么使用 iframe 模式
+  if (!window.FormData) {
+    mode = 'iframe'
+  }
+  if (mode === 'iframe') {
+    Constructor = options.upload ? ProxyUpload : ProxyFrame
+  }
+  return new Constructor(options)
 }
 
-function getProxy(options) {
-    var upload = options.upload = (options.headers||util.o)['Content-Type'] === 'multipart/form-data';
-    var origin1 = (location.protocol + '//' + location.host).toLowerCase();
-    var origin2 = util.url2origin(options.url);
-    var cors = origin1 !== origin2;
-    if (!upload && !cors && !options.mode) {
-        return new ProxyXhr(options);
-    }
-    return getProxyByMode(options);
+function getProxy (options) {
+  var upload = options.upload = (options.headers || util.o)['Content-Type'] === 'multipart/form-data'
+  var origin1 = (location.protocol + '//' + location.host).toLowerCase()
+  var origin2 = util.url2origin(options.url)
+  var cors = origin1 !== origin2
+  if (!upload && !cors && !options.mode) {
+    return new ProxyXhr(options)
+  }
+  return getProxyByMode(options)
 }
 
-function clear(sn) {
-    var c = cache[sn];
-    if (!c) {
-        return;
-    }
-    c.req.destroy();
-    delete cache[sn];
+function clear (sn) {
+  var c = cache[sn]
+  if (!c) {
+    return
+  }
+  c.req.destroy()
+  delete cache[sn]
 }
 
-function parseExtData(c, data) {
-    data = {
-        data: data
-    };
-    var keys = c.result.headers;
-    if (!!keys) {
-        data.headers = c.req.header(keys);
-    }
-    return data;
+function parseExtData (c, data) {
+  data = {
+    data: data
+  }
+  var keys = c.result.headers
+  if (keys) {
+    data.headers = c.req.header(keys)
+  }
+  return data
 }
 
-function callback(sn, type, data) {
-    var c = cache[sn];
-    if (!c) {
-        return;
-    }
-    if (type === 'onload' && !!c.result) {
-        data = parseExtData(c, data);
-    }
-    clear(sn);
-    var event = {
-        type: type,
-        result: data
-    };
-    doFilter(event);
-    if (!event.stopped) {
-        c[type](event.result);
-    }
+function callback (sn, type, data) {
+  var c = cache[sn]
+  if (!c) {
+    return
+  }
+  if (type === 'onload' && c.result) {
+    data = parseExtData(c, data)
+  }
+  clear(sn)
+  var event = {
+    type: type,
+    result: data
+  }
+  doFilter(event)
+  if (!event.stopped) {
+    c[type](event.result)
+  }
 }
 
-function onLoad(sn, data) {
-    callback(sn, 'onload', data);
+function onLoad (sn, data) {
+  callback(sn, 'onload', data)
 }
 
-function onError(sn, error) {
-    callback(sn, 'onerror', error);
+function onError (sn, error) {
+  callback(sn, 'onerror', error)
 }
 
-function mergeUrl(url, data) {
-    var sep = util.genUrlSep(url);
-    data = data || '';
-    if (util.isObject(data)) {
-        data = util.object2query(data);
-    }
-    if (!!data) {
-        url += (sep+data);
-    }
-    return url;
+function mergeUrl (url, data) {
+  var sep = util.genUrlSep(url)
+  data = data || ''
+  if (util.isObject(data)) {
+    data = util.object2query(data)
+  }
+  if (data) {
+    url += (sep + data)
+  }
+  return url
 }
 
 /**
@@ -115,44 +123,44 @@ function mergeUrl(url, data) {
  * - headers, 字符串或字符串数组, 那么会返回相应的头信息
  * @return {String}         序列号
  */
-function ajax(url, options) {
-    options = options || {};
-    // cache callback
-    var sn = util.uniqueID();
-    var c = {
-        result: options.result,
-        onload: options.onload || util.f,
-        onerror: options.onerror || util.f
-    };
-    cache[sn] = c;
-    options.onload = onLoad.bind(null, sn);
-    options.onerror = onError.bind(null, sn);
-    // append query
-    if (!!options.query) {
-        url = mergeUrl(url, options.query);
-    }
-    // append data for get
-    var method = options.method || '';
-    if ((!method || /get/i.test(method)) && !!options.data) {
-        url = mergeUrl(url, options.data);
-        options.data = null;
-    }
-    options.url = url;
-    c.req = getProxy(options);
-    return sn;
+function ajax (url, options) {
+  options = options || {}
+  // cache callback
+  var sn = util.uniqueID()
+  var c = {
+    result: options.result,
+    onload: options.onload || util.f,
+    onerror: options.onerror || util.f
+  }
+  cache[sn] = c
+  options.onload = onLoad.bind(null, sn)
+  options.onerror = onError.bind(null, sn)
+  // append query
+  if (options.query) {
+    url = mergeUrl(url, options.query)
+  }
+  // append data for get
+  var method = options.method || ''
+  if ((!method || /get/i.test(method)) && options.data) {
+    url = mergeUrl(url, options.data)
+    options.data = null
+  }
+  options.url = url
+  c.req = getProxy(options)
+  return sn
 }
 
-ajax.filter = function(filter) {
-    if (util.isFunction(filter)) {
-        doFilter = filter;
-    }
-};
+ajax.filter = function (filter) {
+  if (util.isFunction(filter)) {
+    doFilter = filter
+  }
+}
 
-ajax.abort = function(sn) {
-    var c = cache[sn];
-    if (!!c) {
-        c.req.abort();
-    }
-};
+ajax.abort = function (sn) {
+  var c = cache[sn]
+  if (c) {
+    c.req.abort()
+  }
+}
 
-module.exports = ajax;
+module.exports = ajax
