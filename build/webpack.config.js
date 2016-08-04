@@ -3,7 +3,7 @@
 * @Date:   2016-06-26 17:57:00
 * @Email:  zyy7259@gmail.com
 * @Last modified by:   zyy
-* @Last modified time: 2016-08-01T14:49:42+08:00
+* @Last modified time: 2016-08-04T11:21:03+08:00
 */
 
 var pjson = require('../package.json')
@@ -95,7 +95,6 @@ if (!isProduction) {
   config.output.pathinfo = true
   config.devtool = 'eval'
 } else {
-  config.output.filename = config.output.filename.replace('.js', '.' + pjson.version + '.min.js')
   Array.prototype.push.apply(config.plugins, [
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({
@@ -108,6 +107,10 @@ if (!isProduction) {
     new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000})
   ])
+  config = [config, Object.assign({}, config)]
+  config[0].output = Object.assign({}, config[0].output)
+  config[0].output.filename = config[0].output.filename.replace('.js', '.min.js')
+  config[1].output.filename = config[1].output.filename.replace('.js', '.' + pjson.version + '.min.js')
 }
 
 module.exports = config
