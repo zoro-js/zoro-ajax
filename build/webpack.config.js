@@ -3,7 +3,7 @@
 * @Date:   2016-06-26 17:57:00
 * @Email:  zyy7259@gmail.com
 * @Last modified by:   zyy
-* @Last modified time: 2016-08-04T11:21:03+08:00
+* @Last modified time: 2016-08-04T13:08:28+08:00
 */
 
 var pjson = require('../package.json')
@@ -77,6 +77,12 @@ var config = {
         amd: 'Lodash',
         commonjs: 'lodash',
         commonjs2: 'lodash'
+      },
+      'zoro-base': {
+        root: 'ZoroBase',
+        amd: 'ZoroBase',
+        commonjs2: 'zoro-base',
+        commonjs: 'zoro-base',
       }
     }
   ],
