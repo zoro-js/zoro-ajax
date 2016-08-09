@@ -104,7 +104,7 @@ pro.destroy = function () {
     self.xhr.onreadystatechange = util.f
     self.xhr.abort()
   } catch (e) {
-    console.error('ignore', e)
+    console.error('ignore error ajax destroy,', e)
   }
   sp.destroy.call(self)
 }

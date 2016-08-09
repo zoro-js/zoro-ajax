@@ -359,7 +359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    self.xhr.onreadystatechange = util.f;
 	    self.xhr.abort();
 	  } catch (e) {
-	    console.error('ignore', e);
+	    console.error('ignore error ajax destroy,', e);
 	  }
 	  sp.destroy.call(self);
 	};
@@ -477,12 +477,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    try {
 	      try {
 	        self.emit('beforesend', options);
-	      } catch (e) {
-	        console.error('ignore', e);
+	      } catch (error) {
+	        console.error('ignore error ajax beforesend,', error);
 	      }
 	      self.doSend();
-	    } catch (e) {
-	      console.error('ignore', e);
+	    } catch (error) {
+	      console.error('ignore error server error,', error);
 	      self.onError('serverError', '请求失败:' + e.message);
 	    }
 	  }, 0);
@@ -515,7 +515,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    try {
 	      result = JSON.parse(result);
 	    } catch (e) {
-	      console.error('ignore', e);
+	      console.error('ignore error parse json,', e);
 	      self.onError('parseError', result);
 	      return;
 	    }
@@ -1179,9 +1179,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (text.indexOf(flag) >= 0 || body.innerHTML.indexOf(flag) >= 0) {
 	      return;
 	    }
-	  } catch (e) {
-	    // ignore if not same domain
-	    console.error('ignore', e);
+	  } catch (error) {
+	    console.error('ignore error if not same domain,', error);
 	    return;
 	  }
 	  self.onLoad(text);

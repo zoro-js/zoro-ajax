@@ -61,12 +61,12 @@ pro.send = function () {
     try {
       try {
         self.emit('beforesend', options)
-      } catch (e) {
-        console.error('ignore', e)
+      } catch (error) {
+        console.error('ignore error ajax beforesend,', error)
       }
       self.doSend()
-    } catch (e) {
-      console.error('ignore', e)
+    } catch (error) {
+      console.error('ignore error server error,', error)
       self.onError('serverError', '请求失败:' + e.message)
     }
   }, 0)
@@ -99,7 +99,7 @@ pro.onLoad = function (event) {
     try {
       result = JSON.parse(result)
     } catch (e) {
-      console.error('ignore', e)
+      console.error('ignore error parse json,', e)
       self.onError('parseError', result)
       return
     }

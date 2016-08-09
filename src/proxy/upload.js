@@ -131,9 +131,8 @@ pro.checkResult = function () {
       body.innerHTML.indexOf(flag) >= 0) {
       return
     }
-  } catch (e) {
-    // ignore if not same domain
-    console.error('ignore', e)
+  } catch (error) {
+    console.error('ignore error if not same domain,', error)
     return
   }
   self.onLoad(text)
