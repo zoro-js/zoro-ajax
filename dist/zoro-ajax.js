@@ -52,102 +52,1361 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
-/*!**********************!*\
-  !*** ./src/index.js ***!
-  \**********************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-08-01T14:55:04+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T15:22:04+08:00\n*/\n\nvar obj = {\n  ajax: __webpack_require__(/*! ./ajax */ 1),\n  json: __webpack_require__(/*! ./json */ 9),\n  upload: __webpack_require__(/*! ./upload */ 10)\n};\n\nmodule.exports = obj;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/index.js\n ** module id = 0\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/index.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-08-01T14:55:04+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T15:22:04+08:00
+	*/
+
+	var obj = {
+	  ajax: __webpack_require__(1),
+	  json: __webpack_require__(9),
+	  upload: __webpack_require__(10)
+	};
+
+	module.exports = obj;
 
 /***/ },
 /* 1 */
-/*!*********************!*\
-  !*** ./src/ajax.js ***!
-  \*********************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-06T16:44:26+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T15:04:59+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar ProxyXhr = __webpack_require__(/*! ./proxy/xhr */ 3);\nvar ProxyUpload = __webpack_require__(/*! ./proxy/upload */ 7);\nvar ProxyFrame = __webpack_require__(/*! ./proxy/frame */ 8);\n\nvar cache = {};\nvar doFilter = util.f;\n\nfunction getProxyByMode(options) {\n  var mode = options.mode;\n  var Constructor = ProxyXhr;\n  // 如果是 IE 8/9, 那么使用 iframe 模式\n  if (!window.FormData) {\n    mode = 'iframe';\n  }\n  if (mode === 'iframe') {\n    Constructor = options.upload ? ProxyUpload : ProxyFrame;\n  }\n  return new Constructor(options);\n}\n\nfunction getProxy(options) {\n  var upload = options.upload = (options.headers || util.o)['Content-Type'] === 'multipart/form-data';\n  var origin1 = (location.protocol + '//' + location.host).toLowerCase();\n  var origin2 = util.url2origin(options.url);\n  var cors = origin1 !== origin2;\n  if (!upload && !cors && !options.mode) {\n    return new ProxyXhr(options);\n  }\n  return getProxyByMode(options);\n}\n\nfunction clear(sn) {\n  var c = cache[sn];\n  if (!c) {\n    return;\n  }\n  c.req.destroy();\n  delete cache[sn];\n}\n\nfunction parseExtData(c, data) {\n  data = {\n    data: data\n  };\n  var keys = c.result.headers;\n  if (keys) {\n    data.headers = c.req.header(keys);\n  }\n  return data;\n}\n\nfunction callback(sn, type, data) {\n  var c = cache[sn];\n  if (!c) {\n    return;\n  }\n  if (type === 'onload' && c.result) {\n    data = parseExtData(c, data);\n  }\n  clear(sn);\n  var event = {\n    type: type,\n    result: data\n  };\n  doFilter(event);\n  if (!event.stopped) {\n    c[type](event.result);\n  }\n}\n\nfunction onLoad(sn, data) {\n  callback(sn, 'onload', data);\n}\n\nfunction onError(sn, error) {\n  callback(sn, 'onerror', error);\n}\n\nfunction mergeUrl(url, data) {\n  var sep = util.genUrlSep(url);\n  data = data || '';\n  if (util.isObject(data)) {\n    data = util.object2query(data);\n  }\n  if (data) {\n    url += sep + data;\n  }\n  return url;\n}\n\n/**\n * ajax\n * @param  {String} url     请求地址\n * @param  {Object} options 配置参数\n * @property {String} [options.method='GET'] 请求方法, 可选值如下\n * - 'GET'\n * - 'POST'\n * @property {Boolean} [options.sync=false] 是否是同步请求\n * @property {Object|String} [options.query] 'GET' 请求的请求参数, 会拼接到 url\n * @property {Object|String} [options.data] 'POST' 请求要发送的数据, 如果是 'GET' 请求, 那么此参数会被拼接到 url\n * @property {Object} [options.headers] 头信息\n * @property {Boolean} [options.cookie=false] 是否设置`withCredentials`\n * @property {Number} [options.timeout=6000] ms, 超时时间, 0 表示不设置超时\n * @property {String} [options.type='text'] 请求成功时, 返回的数据格式, 可选的值如下\n * - 'text': 文本\n * - 'json': 对象\n * @property {Function} [options.onbeforesend] 发送之前的回调\n * @property {Function} [options.onload] 请求完成回调函数\n * @property {Function} [options.onerror] 请求失败回调函数\n * @property {String} [options.mode='auto'] 跨域或者文件上传所使用的模式\n * - 'auto': 自动, 高版本使用 HTML5, 低版本使用 iframe\n * - 'iframe': 全部使用 iframe\n * @property {Object} [options.result] onload回调时需包含的额外结果, 可选如下\n * - headers, 字符串或字符串数组, 那么会返回相应的头信息\n * @return {String}         序列号\n */\nfunction ajax(url, options) {\n  options = options || {};\n  // cache callback\n  var sn = util.uniqueID();\n  var c = {\n    result: options.result,\n    onload: options.onload || util.f,\n    onerror: options.onerror || util.f\n  };\n  cache[sn] = c;\n  options.onload = onLoad.bind(null, sn);\n  options.onerror = onError.bind(null, sn);\n  // append query\n  if (options.query) {\n    url = mergeUrl(url, options.query);\n  }\n  // append data for get\n  var method = options.method || '';\n  if ((!method || /get/i.test(method)) && options.data) {\n    url = mergeUrl(url, options.data);\n    options.data = null;\n  }\n  options.url = url;\n  c.req = getProxy(options);\n  return sn;\n}\n\najax.filter = function (filter) {\n  if (util.isFunction(filter)) {\n    doFilter = filter;\n  }\n};\n\najax.abort = function (sn) {\n  var c = cache[sn];\n  if (c) {\n    c.req.abort();\n  }\n};\n\nmodule.exports = ajax;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/ajax.js\n ** module id = 1\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/ajax.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-06T16:44:26+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T15:04:59+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var ProxyXhr = __webpack_require__(3);
+	var ProxyUpload = __webpack_require__(7);
+	var ProxyFrame = __webpack_require__(8);
+
+	var cache = {};
+	var doFilter = util.f;
+
+	function getProxyByMode(options) {
+	  var mode = options.mode;
+	  var Constructor = ProxyXhr;
+	  // 如果是 IE 8/9, 那么使用 iframe 模式
+	  if (!window.FormData) {
+	    mode = 'iframe';
+	  }
+	  if (mode === 'iframe') {
+	    Constructor = options.upload ? ProxyUpload : ProxyFrame;
+	  }
+	  return new Constructor(options);
+	}
+
+	function getProxy(options) {
+	  var upload = options.upload = (options.headers || util.o)['Content-Type'] === 'multipart/form-data';
+	  var origin1 = (location.protocol + '//' + location.host).toLowerCase();
+	  var origin2 = util.url2origin(options.url);
+	  var cors = origin1 !== origin2;
+	  if (!upload && !cors && !options.mode) {
+	    return new ProxyXhr(options);
+	  }
+	  return getProxyByMode(options);
+	}
+
+	function clear(sn) {
+	  var c = cache[sn];
+	  if (!c) {
+	    return;
+	  }
+	  c.req.destroy();
+	  delete cache[sn];
+	}
+
+	function parseExtData(c, data) {
+	  data = {
+	    data: data
+	  };
+	  var keys = c.result.headers;
+	  if (keys) {
+	    data.headers = c.req.header(keys);
+	  }
+	  return data;
+	}
+
+	function callback(sn, type, data) {
+	  var c = cache[sn];
+	  if (!c) {
+	    return;
+	  }
+	  if (type === 'onload' && c.result) {
+	    data = parseExtData(c, data);
+	  }
+	  clear(sn);
+	  var event = {
+	    type: type,
+	    result: data
+	  };
+	  doFilter(event);
+	  if (!event.stopped) {
+	    c[type](event.result);
+	  }
+	}
+
+	function onLoad(sn, data) {
+	  callback(sn, 'onload', data);
+	}
+
+	function onError(sn, error) {
+	  callback(sn, 'onerror', error);
+	}
+
+	function mergeUrl(url, data) {
+	  var sep = util.genUrlSep(url);
+	  data = data || '';
+	  if (util.isObject(data)) {
+	    data = util.object2query(data);
+	  }
+	  if (data) {
+	    url += sep + data;
+	  }
+	  return url;
+	}
+
+	/**
+	 * ajax
+	 * @param  {String} url     请求地址
+	 * @param  {Object} options 配置参数
+	 * @property {String} [options.method='GET'] 请求方法, 可选值如下
+	 * - 'GET'
+	 * - 'POST'
+	 * @property {Boolean} [options.sync=false] 是否是同步请求
+	 * @property {Object|String} [options.query] 'GET' 请求的请求参数, 会拼接到 url
+	 * @property {Object|String} [options.data] 'POST' 请求要发送的数据, 如果是 'GET' 请求, 那么此参数会被拼接到 url
+	 * @property {Object} [options.headers] 头信息
+	 * @property {Boolean} [options.cookie=false] 是否设置`withCredentials`
+	 * @property {Number} [options.timeout=6000] ms, 超时时间, 0 表示不设置超时
+	 * @property {String} [options.type='text'] 请求成功时, 返回的数据格式, 可选的值如下
+	 * - 'text': 文本
+	 * - 'json': 对象
+	 * @property {Function} [options.onbeforesend] 发送之前的回调
+	 * @property {Function} [options.onload] 请求完成回调函数
+	 * @property {Function} [options.onerror] 请求失败回调函数
+	 * @property {String} [options.mode='auto'] 跨域或者文件上传所使用的模式
+	 * - 'auto': 自动, 高版本使用 HTML5, 低版本使用 iframe
+	 * - 'iframe': 全部使用 iframe
+	 * @property {Object} [options.result] onload回调时需包含的额外结果, 可选如下
+	 * - headers, 字符串或字符串数组, 那么会返回相应的头信息
+	 * @return {String}         序列号
+	 */
+	function ajax(url, options) {
+	  options = options || {};
+	  // cache callback
+	  var sn = util.uniqueID();
+	  var c = {
+	    result: options.result,
+	    onload: options.onload || util.f,
+	    onerror: options.onerror || util.f
+	  };
+	  cache[sn] = c;
+	  options.onload = onLoad.bind(null, sn);
+	  options.onerror = onError.bind(null, sn);
+	  // append query
+	  if (options.query) {
+	    url = mergeUrl(url, options.query);
+	  }
+	  // append data for get
+	  var method = options.method || '';
+	  if ((!method || /get/i.test(method)) && options.data) {
+	    url = mergeUrl(url, options.data);
+	    options.data = null;
+	  }
+	  options.url = url;
+	  c.req = getProxy(options);
+	  return sn;
+	}
+
+	ajax.filter = function (filter) {
+	  if (util.isFunction(filter)) {
+	    doFilter = filter;
+	  }
+	};
+
+	ajax.abort = function (sn) {
+	  var c = cache[sn];
+	  if (c) {
+	    c.req.abort();
+	  }
+	};
+
+	module.exports = ajax;
 
 /***/ },
 /* 2 */
-/*!****************************************************************************************************!*\
-  !*** external {"root":"ZoroBase","amd":"ZoroBase","commonjs2":"zoro-base","commonjs":"zoro-base"} ***!
-  \****************************************************************************************************/
 /***/ function(module, exports) {
 
-	eval("module.exports = __WEBPACK_EXTERNAL_MODULE_2__;\n\n/*****************\n ** WEBPACK FOOTER\n ** external {\"root\":\"ZoroBase\",\"amd\":\"ZoroBase\",\"commonjs2\":\"zoro-base\",\"commonjs\":\"zoro-base\"}\n ** module id = 2\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///external_%7B%22root%22:%22ZoroBase%22,%22amd%22:%22ZoroBase%22,%22commonjs2%22:%22zoro-base%22,%22commonjs%22:%22zoro-base%22%7D?");
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
 
 /***/ },
 /* 3 */
-/*!**************************!*\
-  !*** ./src/proxy/xhr.js ***!
-  \**************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-08T16:37:15+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T14:56:19+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar pu = __webpack_require__(/*! ./util */ 4);\nvar Proxy = __webpack_require__(/*! ./index */ 5);\n\nfunction ProxyXhr(options) {\n  var self = this;\n  // addListeners\n  if (options.onuploading) {\n    self.on('uploading', options.onuploading);\n  }\n  Proxy.call(self, options);\n}\n\nvar sp = Proxy.prototype;\nvar pro = ProxyXhr.prototype = Object.create(sp);\n\npro.doSend = function () {\n  var self = this;\n  var options = self.options;\n  var headers = options.headers;\n  var xhr = self.xhr = new XMLHttpRequest();\n  // add event listener\n  // upload progress\n  if (headers['Content-Type'] === 'multipart/form-data') {\n    delete headers['Content-Type'];\n    xhr.upload.onprogress = self.onProgress.bind(self);\n    xhr.upload.onload = self.onProgress.bind(self);\n    var data = options.data;\n    options.data = new FormData();\n    if (data) {\n      pu.getKeys(data, options.putFileAtEnd).forEach(function (key) {\n        var value = data[key];\n        if (value.tagName && value.tagName.toUpperCase() === 'INPUT') {\n          if (value.type === 'file') {\n            [].forEach.call(value.files, function (file) {\n              options.data.append(util.dataset(value, 'name') || value.name || file.name || 'file-' + util.uniqueID(), file);\n            });\n          }\n        } else {\n          options.data.append(key, value);\n        }\n      });\n    }\n  }\n  // state change\n  xhr.onreadystatechange = self.onStateChange.bind(self);\n  // timeout\n  if (options.timeout !== 0) {\n    self.timer = setTimeout(self.onTimeout.bind(self), options.timeout);\n  }\n  // prepare and send\n  xhr.open(options.method, options.url, !options.sync);\n  Object.keys(headers).forEach(function (key) {\n    xhr.setRequestHeader(key, headers[key]);\n  });\n  if (!!options.cookie && 'withCredentials' in xhr) {\n    xhr.withCredentials = true;\n  }\n  xhr.send(options.data);\n  self.afterSend();\n};\n\npro.onProgress = function (event) {\n  // IE 10很神奇的, 在upload的load事件之后还会再触发一次progress, 并且loaded比total大。。。\n  if (event.lengthComputable && event.loaded <= event.total) {\n    this.emit('uploading', event);\n  }\n};\n\npro.onStateChange = function () {\n  var self = this;\n  var xhr = self.xhr;\n  if (xhr.readyState === 4) {\n    self.onLoad({\n      status: xhr.status,\n      result: xhr.responseText || ''\n    });\n  }\n};\n\npro.getResponseHeader = function (key) {\n  var xhr = this.xhr;\n  return !xhr ? '' : xhr.getResponseHeader(key);\n};\n\npro.destroy = function () {\n  var self = this;\n  // clear timeout\n  clearTimeout(self.timer);\n  // clear request\n  try {\n    self.xhr.onreadystatechange = util.f;\n    self.xhr.abort();\n  } catch (e) {\n    console.error('ignore', e);\n  }\n  sp.destroy.call(self);\n};\n\nmodule.exports = ProxyXhr;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/proxy/xhr.js\n ** module id = 3\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/proxy/xhr.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-08T16:37:15+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T14:56:19+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var pu = __webpack_require__(4);
+	var Proxy = __webpack_require__(5);
+
+	function ProxyXhr(options) {
+	  var self = this;
+	  // addListeners
+	  if (options.onuploading) {
+	    self.on('uploading', options.onuploading);
+	  }
+	  Proxy.call(self, options);
+	}
+
+	var sp = Proxy.prototype;
+	var pro = ProxyXhr.prototype = Object.create(sp);
+
+	pro.doSend = function () {
+	  var self = this;
+	  var options = self.options;
+	  var headers = options.headers;
+	  var xhr = self.xhr = new XMLHttpRequest();
+	  // add event listener
+	  // upload progress
+	  if (headers['Content-Type'] === 'multipart/form-data') {
+	    delete headers['Content-Type'];
+	    xhr.upload.onprogress = self.onProgress.bind(self);
+	    xhr.upload.onload = self.onProgress.bind(self);
+	    var data = options.data;
+	    options.data = new FormData();
+	    if (data) {
+	      pu.getKeys(data, options.putFileAtEnd).forEach(function (key) {
+	        var value = data[key];
+	        if (value.tagName && value.tagName.toUpperCase() === 'INPUT') {
+	          if (value.type === 'file') {
+	            [].forEach.call(value.files, function (file) {
+	              options.data.append(util.dataset(value, 'name') || value.name || file.name || 'file-' + util.uniqueID(), file);
+	            });
+	          }
+	        } else {
+	          options.data.append(key, value);
+	        }
+	      });
+	    }
+	  }
+	  // state change
+	  xhr.onreadystatechange = self.onStateChange.bind(self);
+	  // timeout
+	  if (options.timeout !== 0) {
+	    self.timer = setTimeout(self.onTimeout.bind(self), options.timeout);
+	  }
+	  // prepare and send
+	  xhr.open(options.method, options.url, !options.sync);
+	  Object.keys(headers).forEach(function (key) {
+	    xhr.setRequestHeader(key, headers[key]);
+	  });
+	  if (!!options.cookie && 'withCredentials' in xhr) {
+	    xhr.withCredentials = true;
+	  }
+	  xhr.send(options.data);
+	  self.afterSend();
+	};
+
+	pro.onProgress = function (event) {
+	  // IE 10很神奇的, 在upload的load事件之后还会再触发一次progress, 并且loaded比total大。。。
+	  if (event.lengthComputable && event.loaded <= event.total) {
+	    this.emit('uploading', event);
+	  }
+	};
+
+	pro.onStateChange = function () {
+	  var self = this;
+	  var xhr = self.xhr;
+	  if (xhr.readyState === 4) {
+	    self.onLoad({
+	      status: xhr.status,
+	      result: xhr.responseText || ''
+	    });
+	  }
+	};
+
+	pro.getResponseHeader = function (key) {
+	  var xhr = this.xhr;
+	  return !xhr ? '' : xhr.getResponseHeader(key);
+	};
+
+	pro.destroy = function () {
+	  var self = this;
+	  // clear timeout
+	  clearTimeout(self.timer);
+	  // clear request
+	  try {
+	    self.xhr.onreadystatechange = util.f;
+	    self.xhr.abort();
+	  } catch (e) {
+	    console.error('ignore', e);
+	  }
+	  sp.destroy.call(self);
+	};
+
+	module.exports = ProxyXhr;
 
 /***/ },
 /* 4 */
-/*!***************************!*\
-  !*** ./src/proxy/util.js ***!
-  \***************************/
 /***/ function(module, exports) {
 
-	eval("'use strict';\n\n/*\n* @Author: Zhang Yingya(hzzhangyingya)\n* @Date:   2016-06-03 15:07:41\n* @Last Modified by:   Zhang Yingya(hzzhangyingya)\n* @Last Modified time: 2016-06-03 16:13:45\n*/\n\nvar util = {};\n\nutil.isFileInput = function (value) {\n  return value.tagName && value.tagName.toUpperCase() === 'INPUT' || window.Blob && value instanceof window.Blob;\n};\n\n/**\n * 获取所有的 keys\n * putFileAtEnd 表示将文件对应的 keys 放在最后\n */\nutil.getKeys = function (data, putFileAtEnd) {\n  var keys = Object.keys(data);\n  if (putFileAtEnd) {\n    keys.sort(function (key1, key2) {\n      var value1IsFileInput = util.isFileInput(data[key1]);\n      var value2IsFileInput = util.isFileInput(data[key2]);\n      // 如果两个值相等, 说明都是文件或者都不是文件, 那么顺序不变\n      if (value1IsFileInput === value2IsFileInput) {\n        return 0;\n      } else {\n        return value1IsFileInput ? 1 : -1;\n      }\n    });\n  }\n  return keys;\n};\n\nmodule.exports = util;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/proxy/util.js\n ** module id = 4\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/proxy/util.js?");
+	'use strict';
+
+	/*
+	* @Author: Zhang Yingya(hzzhangyingya)
+	* @Date:   2016-06-03 15:07:41
+	* @Last Modified by:   Zhang Yingya(hzzhangyingya)
+	* @Last Modified time: 2016-06-03 16:13:45
+	*/
+
+	var util = {};
+
+	util.isFileInput = function (value) {
+	  return value.tagName && value.tagName.toUpperCase() === 'INPUT' || window.Blob && value instanceof window.Blob;
+	};
+
+	/**
+	 * 获取所有的 keys
+	 * putFileAtEnd 表示将文件对应的 keys 放在最后
+	 */
+	util.getKeys = function (data, putFileAtEnd) {
+	  var keys = Object.keys(data);
+	  if (putFileAtEnd) {
+	    keys.sort(function (key1, key2) {
+	      var value1IsFileInput = util.isFileInput(data[key1]);
+	      var value2IsFileInput = util.isFileInput(data[key2]);
+	      // 如果两个值相等, 说明都是文件或者都不是文件, 那么顺序不变
+	      if (value1IsFileInput === value2IsFileInput) {
+	        return 0;
+	      } else {
+	        return value1IsFileInput ? 1 : -1;
+	      }
+	    });
+	  }
+	  return keys;
+	};
+
+	module.exports = util;
 
 /***/ },
 /* 5 */
-/*!****************************!*\
-  !*** ./src/proxy/index.js ***!
-  \****************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-08T16:38:53+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T15:03:56+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar f = util.f;\nvar EventEmitter = __webpack_require__(/*! wolfy87-eventemitter */ 6);\n\nfunction Proxy(options) {\n  var self = this;\n  // addListeners\n  if (options.onload) {\n    self.once('load', options.onload);\n  }\n  if (options.onerror) {\n    self.once('error', options.onerror);\n  }\n  if (options.onbeforesend) {\n    self.once('beforesend', options.onbeforesend);\n  }\n  if (options.onaftersend) {\n    self.once('aftersend', options.onaftersend);\n  }\n  // handle options\n  options = self.options = util.fetch({\n    method: 'GET',\n    url: '',\n    sync: false,\n    data: null,\n    headers: {},\n    cookie: false,\n    timeout: 6000,\n    type: 'text',\n    // 文件上传用到的参数\n    form: null,\n    input: null,\n    // 是否将文件放在末尾\n    putFileAtEnd: false,\n    // iframe 模式用到的代理地址\n    proxyUrl: ''\n  }, options);\n  // headers\n  var headers = options.headers;\n  var contentType = 'Content-Type';\n  if (util.notexist(headers[contentType])) {\n    headers[contentType] = 'application/x-www-form-urlencoded';\n  }\n  self.send();\n}\n\nvar pro = Proxy.prototype = Object.create(EventEmitter.prototype);\n\npro.send = function () {\n  var self = this;\n  var options = self.options;\n  setTimeout(function () {\n    try {\n      try {\n        self.emit('beforesend', options);\n      } catch (e) {\n        console.error('ignore', e);\n      }\n      self.doSend();\n    } catch (e) {\n      console.error('ignore', e);\n      self.onError('serverError', '请求失败:' + e.message);\n    }\n  }, 0);\n};\n\npro.doSend = f;\n\npro.afterSend = function () {\n  var self = this;\n  setTimeout(function () {\n    self.emit('aftersend', self.options);\n  }, 0);\n};\n\npro.onLoad = function (event) {\n  var self = this;\n  var options = self.options;\n  var status = event.status;\n  var result = event.result;\n  // check status\n  if (('' + status).indexOf('2') !== 0) {\n    self.onError('serverError', '服务器返回异常状态', {\n      status: status,\n      result: result\n    });\n    return;\n  }\n  // parse json\n  if (options.type === 'json') {\n    try {\n      result = JSON.parse(result);\n    } catch (e) {\n      console.error('ignore', e);\n      self.onError('parseError', result);\n      return;\n    }\n  }\n  // onload\n  self.emit('load', result);\n};\n\npro.onError = function (code, message, ext) {\n  var obj = util.isObject(ext) ? ext : {};\n  obj.code = code || 'error';\n  obj.message = message || '发生错误';\n  this.emit('error', obj);\n};\n\npro.onTimeout = function () {\n  this.onError('timeout', '请求超时');\n};\n\npro.abort = function () {\n  this.onError('abort', '客户端中止');\n};\n\npro.header = function (key) {\n  var self = this;\n  if (!util.isArray(key)) {\n    return self.getResponseHeader(key || '');\n  }\n  var result = {};\n  key.forEach(function (k) {\n    result[k] = self.header(k);\n  });\n  return result;\n};\n\npro.getResponseHeader = f;\n\npro.destroy = f;\n\nmodule.exports = Proxy;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/proxy/index.js\n ** module id = 5\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/proxy/index.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-08T16:38:53+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T15:03:56+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var f = util.f;
+	var EventEmitter = __webpack_require__(6);
+
+	function Proxy(options) {
+	  var self = this;
+	  // addListeners
+	  if (options.onload) {
+	    self.once('load', options.onload);
+	  }
+	  if (options.onerror) {
+	    self.once('error', options.onerror);
+	  }
+	  if (options.onbeforesend) {
+	    self.once('beforesend', options.onbeforesend);
+	  }
+	  if (options.onaftersend) {
+	    self.once('aftersend', options.onaftersend);
+	  }
+	  // handle options
+	  options = self.options = util.fetch({
+	    method: 'GET',
+	    url: '',
+	    sync: false,
+	    data: null,
+	    headers: {},
+	    cookie: false,
+	    timeout: 6000,
+	    type: 'text',
+	    // 文件上传用到的参数
+	    form: null,
+	    input: null,
+	    // 是否将文件放在末尾
+	    putFileAtEnd: false,
+	    // iframe 模式用到的代理地址
+	    proxyUrl: ''
+	  }, options);
+	  // headers
+	  var headers = options.headers;
+	  var contentType = 'Content-Type';
+	  if (util.notexist(headers[contentType])) {
+	    headers[contentType] = 'application/x-www-form-urlencoded';
+	  }
+	  self.send();
+	}
+
+	var pro = Proxy.prototype = Object.create(EventEmitter.prototype);
+
+	pro.send = function () {
+	  var self = this;
+	  var options = self.options;
+	  setTimeout(function () {
+	    try {
+	      try {
+	        self.emit('beforesend', options);
+	      } catch (e) {
+	        console.error('ignore', e);
+	      }
+	      self.doSend();
+	    } catch (e) {
+	      console.error('ignore', e);
+	      self.onError('serverError', '请求失败:' + e.message);
+	    }
+	  }, 0);
+	};
+
+	pro.doSend = f;
+
+	pro.afterSend = function () {
+	  var self = this;
+	  setTimeout(function () {
+	    self.emit('aftersend', self.options);
+	  }, 0);
+	};
+
+	pro.onLoad = function (event) {
+	  var self = this;
+	  var options = self.options;
+	  var status = event.status;
+	  var result = event.result;
+	  // check status
+	  if (('' + status).indexOf('2') !== 0) {
+	    self.onError('serverError', '服务器返回异常状态', {
+	      status: status,
+	      result: result
+	    });
+	    return;
+	  }
+	  // parse json
+	  if (options.type === 'json') {
+	    try {
+	      result = JSON.parse(result);
+	    } catch (e) {
+	      console.error('ignore', e);
+	      self.onError('parseError', result);
+	      return;
+	    }
+	  }
+	  // onload
+	  self.emit('load', result);
+	};
+
+	pro.onError = function (code, message, ext) {
+	  var obj = util.isObject(ext) ? ext : {};
+	  obj.code = code || 'error';
+	  obj.message = message || '发生错误';
+	  this.emit('error', obj);
+	};
+
+	pro.onTimeout = function () {
+	  this.onError('timeout', '请求超时');
+	};
+
+	pro.abort = function () {
+	  this.onError('abort', '客户端中止');
+	};
+
+	pro.header = function (key) {
+	  var self = this;
+	  if (!util.isArray(key)) {
+	    return self.getResponseHeader(key || '');
+	  }
+	  var result = {};
+	  key.forEach(function (k) {
+	    result[k] = self.header(k);
+	  });
+	  return result;
+	};
+
+	pro.getResponseHeader = f;
+
+	pro.destroy = f;
+
+	module.exports = Proxy;
 
 /***/ },
 /* 6 */
-/*!************************************************!*\
-  !*** ./~/wolfy87-eventemitter/EventEmitter.js ***!
-  \************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("var __WEBPACK_AMD_DEFINE_RESULT__;/*!\n * EventEmitter v4.2.11 - git.io/ee\n * Unlicense - http://unlicense.org/\n * Oliver Caldwell - http://oli.me.uk/\n * @preserve\n */\n\n;(function () {\n    'use strict';\n\n    /**\n     * Class for managing events.\n     * Can be extended to provide event functionality in other classes.\n     *\n     * @class EventEmitter Manages event registering and emitting.\n     */\n    function EventEmitter() {}\n\n    // Shortcuts to improve speed and size\n    var proto = EventEmitter.prototype;\n    var exports = this;\n    var originalGlobalValue = exports.EventEmitter;\n\n    /**\n     * Finds the index of the listener for the event in its storage array.\n     *\n     * @param {Function[]} listeners Array of listeners to search through.\n     * @param {Function} listener Method to look for.\n     * @return {Number} Index of the specified listener, -1 if not found\n     * @api private\n     */\n    function indexOfListener(listeners, listener) {\n        var i = listeners.length;\n        while (i--) {\n            if (listeners[i].listener === listener) {\n                return i;\n            }\n        }\n\n        return -1;\n    }\n\n    /**\n     * Alias a method while keeping the context correct, to allow for overwriting of target method.\n     *\n     * @param {String} name The name of the target method.\n     * @return {Function} The aliased method\n     * @api private\n     */\n    function alias(name) {\n        return function aliasClosure() {\n            return this[name].apply(this, arguments);\n        };\n    }\n\n    /**\n     * Returns the listener array for the specified event.\n     * Will initialise the event object and listener arrays if required.\n     * Will return an object if you use a regex search. The object contains keys for each matched event. So /ba[rz]/ might return an object containing bar and baz. But only if you have either defined them with defineEvent or added some listeners to them.\n     * Each property in the object response is an array of listener functions.\n     *\n     * @param {String|RegExp} evt Name of the event to return the listeners from.\n     * @return {Function[]|Object} All listener functions for the event.\n     */\n    proto.getListeners = function getListeners(evt) {\n        var events = this._getEvents();\n        var response;\n        var key;\n\n        // Return a concatenated array of all matching events if\n        // the selector is a regular expression.\n        if (evt instanceof RegExp) {\n            response = {};\n            for (key in events) {\n                if (events.hasOwnProperty(key) && evt.test(key)) {\n                    response[key] = events[key];\n                }\n            }\n        }\n        else {\n            response = events[evt] || (events[evt] = []);\n        }\n\n        return response;\n    };\n\n    /**\n     * Takes a list of listener objects and flattens it into a list of listener functions.\n     *\n     * @param {Object[]} listeners Raw listener objects.\n     * @return {Function[]} Just the listener functions.\n     */\n    proto.flattenListeners = function flattenListeners(listeners) {\n        var flatListeners = [];\n        var i;\n\n        for (i = 0; i < listeners.length; i += 1) {\n            flatListeners.push(listeners[i].listener);\n        }\n\n        return flatListeners;\n    };\n\n    /**\n     * Fetches the requested listeners via getListeners but will always return the results inside an object. This is mainly for internal use but others may find it useful.\n     *\n     * @param {String|RegExp} evt Name of the event to return the listeners from.\n     * @return {Object} All listener functions for an event in an object.\n     */\n    proto.getListenersAsObject = function getListenersAsObject(evt) {\n        var listeners = this.getListeners(evt);\n        var response;\n\n        if (listeners instanceof Array) {\n            response = {};\n            response[evt] = listeners;\n        }\n\n        return response || listeners;\n    };\n\n    /**\n     * Adds a listener function to the specified event.\n     * The listener will not be added if it is a duplicate.\n     * If the listener returns true then it will be removed after it is called.\n     * If you pass a regular expression as the event name then the listener will be added to all events that match it.\n     *\n     * @param {String|RegExp} evt Name of the event to attach the listener to.\n     * @param {Function} listener Method to be called when the event is emitted. If the function returns true then it will be removed after calling.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.addListener = function addListener(evt, listener) {\n        var listeners = this.getListenersAsObject(evt);\n        var listenerIsWrapped = typeof listener === 'object';\n        var key;\n\n        for (key in listeners) {\n            if (listeners.hasOwnProperty(key) && indexOfListener(listeners[key], listener) === -1) {\n                listeners[key].push(listenerIsWrapped ? listener : {\n                    listener: listener,\n                    once: false\n                });\n            }\n        }\n\n        return this;\n    };\n\n    /**\n     * Alias of addListener\n     */\n    proto.on = alias('addListener');\n\n    /**\n     * Semi-alias of addListener. It will add a listener that will be\n     * automatically removed after its first execution.\n     *\n     * @param {String|RegExp} evt Name of the event to attach the listener to.\n     * @param {Function} listener Method to be called when the event is emitted. If the function returns true then it will be removed after calling.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.addOnceListener = function addOnceListener(evt, listener) {\n        return this.addListener(evt, {\n            listener: listener,\n            once: true\n        });\n    };\n\n    /**\n     * Alias of addOnceListener.\n     */\n    proto.once = alias('addOnceListener');\n\n    /**\n     * Defines an event name. This is required if you want to use a regex to add a listener to multiple events at once. If you don't do this then how do you expect it to know what event to add to? Should it just add to every possible match for a regex? No. That is scary and bad.\n     * You need to tell it what event names should be matched by a regex.\n     *\n     * @param {String} evt Name of the event to create.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.defineEvent = function defineEvent(evt) {\n        this.getListeners(evt);\n        return this;\n    };\n\n    /**\n     * Uses defineEvent to define multiple events.\n     *\n     * @param {String[]} evts An array of event names to define.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.defineEvents = function defineEvents(evts) {\n        for (var i = 0; i < evts.length; i += 1) {\n            this.defineEvent(evts[i]);\n        }\n        return this;\n    };\n\n    /**\n     * Removes a listener function from the specified event.\n     * When passed a regular expression as the event name, it will remove the listener from all events that match it.\n     *\n     * @param {String|RegExp} evt Name of the event to remove the listener from.\n     * @param {Function} listener Method to remove from the event.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.removeListener = function removeListener(evt, listener) {\n        var listeners = this.getListenersAsObject(evt);\n        var index;\n        var key;\n\n        for (key in listeners) {\n            if (listeners.hasOwnProperty(key)) {\n                index = indexOfListener(listeners[key], listener);\n\n                if (index !== -1) {\n                    listeners[key].splice(index, 1);\n                }\n            }\n        }\n\n        return this;\n    };\n\n    /**\n     * Alias of removeListener\n     */\n    proto.off = alias('removeListener');\n\n    /**\n     * Adds listeners in bulk using the manipulateListeners method.\n     * If you pass an object as the second argument you can add to multiple events at once. The object should contain key value pairs of events and listeners or listener arrays. You can also pass it an event name and an array of listeners to be added.\n     * You can also pass it a regular expression to add the array of listeners to all events that match it.\n     * Yeah, this function does quite a bit. That's probably a bad thing.\n     *\n     * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to add to multiple events at once.\n     * @param {Function[]} [listeners] An optional array of listener functions to add.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.addListeners = function addListeners(evt, listeners) {\n        // Pass through to manipulateListeners\n        return this.manipulateListeners(false, evt, listeners);\n    };\n\n    /**\n     * Removes listeners in bulk using the manipulateListeners method.\n     * If you pass an object as the second argument you can remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.\n     * You can also pass it an event name and an array of listeners to be removed.\n     * You can also pass it a regular expression to remove the listeners from all events that match it.\n     *\n     * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to remove from multiple events at once.\n     * @param {Function[]} [listeners] An optional array of listener functions to remove.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.removeListeners = function removeListeners(evt, listeners) {\n        // Pass through to manipulateListeners\n        return this.manipulateListeners(true, evt, listeners);\n    };\n\n    /**\n     * Edits listeners in bulk. The addListeners and removeListeners methods both use this to do their job. You should really use those instead, this is a little lower level.\n     * The first argument will determine if the listeners are removed (true) or added (false).\n     * If you pass an object as the second argument you can add/remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.\n     * You can also pass it an event name and an array of listeners to be added/removed.\n     * You can also pass it a regular expression to manipulate the listeners of all events that match it.\n     *\n     * @param {Boolean} remove True if you want to remove listeners, false if you want to add.\n     * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to add/remove from multiple events at once.\n     * @param {Function[]} [listeners] An optional array of listener functions to add/remove.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.manipulateListeners = function manipulateListeners(remove, evt, listeners) {\n        var i;\n        var value;\n        var single = remove ? this.removeListener : this.addListener;\n        var multiple = remove ? this.removeListeners : this.addListeners;\n\n        // If evt is an object then pass each of its properties to this method\n        if (typeof evt === 'object' && !(evt instanceof RegExp)) {\n            for (i in evt) {\n                if (evt.hasOwnProperty(i) && (value = evt[i])) {\n                    // Pass the single listener straight through to the singular method\n                    if (typeof value === 'function') {\n                        single.call(this, i, value);\n                    }\n                    else {\n                        // Otherwise pass back to the multiple function\n                        multiple.call(this, i, value);\n                    }\n                }\n            }\n        }\n        else {\n            // So evt must be a string\n            // And listeners must be an array of listeners\n            // Loop over it and pass each one to the multiple method\n            i = listeners.length;\n            while (i--) {\n                single.call(this, evt, listeners[i]);\n            }\n        }\n\n        return this;\n    };\n\n    /**\n     * Removes all listeners from a specified event.\n     * If you do not specify an event then all listeners will be removed.\n     * That means every event will be emptied.\n     * You can also pass a regex to remove all events that match it.\n     *\n     * @param {String|RegExp} [evt] Optional name of the event to remove all listeners for. Will remove from every event if not passed.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.removeEvent = function removeEvent(evt) {\n        var type = typeof evt;\n        var events = this._getEvents();\n        var key;\n\n        // Remove different things depending on the state of evt\n        if (type === 'string') {\n            // Remove all listeners for the specified event\n            delete events[evt];\n        }\n        else if (evt instanceof RegExp) {\n            // Remove all events matching the regex.\n            for (key in events) {\n                if (events.hasOwnProperty(key) && evt.test(key)) {\n                    delete events[key];\n                }\n            }\n        }\n        else {\n            // Remove all listeners in all events\n            delete this._events;\n        }\n\n        return this;\n    };\n\n    /**\n     * Alias of removeEvent.\n     *\n     * Added to mirror the node API.\n     */\n    proto.removeAllListeners = alias('removeEvent');\n\n    /**\n     * Emits an event of your choice.\n     * When emitted, every listener attached to that event will be executed.\n     * If you pass the optional argument array then those arguments will be passed to every listener upon execution.\n     * Because it uses `apply`, your array of arguments will be passed as if you wrote them out separately.\n     * So they will not arrive within the array on the other side, they will be separate.\n     * You can also pass a regular expression to emit to all events that match it.\n     *\n     * @param {String|RegExp} evt Name of the event to emit and execute listeners for.\n     * @param {Array} [args] Optional array of arguments to be passed to each listener.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.emitEvent = function emitEvent(evt, args) {\n        var listenersMap = this.getListenersAsObject(evt);\n        var listeners;\n        var listener;\n        var i;\n        var key;\n        var response;\n\n        for (key in listenersMap) {\n            if (listenersMap.hasOwnProperty(key)) {\n                listeners = listenersMap[key].slice(0);\n                i = listeners.length;\n\n                while (i--) {\n                    // If the listener returns true then it shall be removed from the event\n                    // The function is executed either with a basic call or an apply if there is an args array\n                    listener = listeners[i];\n\n                    if (listener.once === true) {\n                        this.removeListener(evt, listener.listener);\n                    }\n\n                    response = listener.listener.apply(this, args || []);\n\n                    if (response === this._getOnceReturnValue()) {\n                        this.removeListener(evt, listener.listener);\n                    }\n                }\n            }\n        }\n\n        return this;\n    };\n\n    /**\n     * Alias of emitEvent\n     */\n    proto.trigger = alias('emitEvent');\n\n    /**\n     * Subtly different from emitEvent in that it will pass its arguments on to the listeners, as opposed to taking a single array of arguments to pass on.\n     * As with emitEvent, you can pass a regex in place of the event name to emit to all events that match it.\n     *\n     * @param {String|RegExp} evt Name of the event to emit and execute listeners for.\n     * @param {...*} Optional additional arguments to be passed to each listener.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.emit = function emit(evt) {\n        var args = Array.prototype.slice.call(arguments, 1);\n        return this.emitEvent(evt, args);\n    };\n\n    /**\n     * Sets the current value to check against when executing listeners. If a\n     * listeners return value matches the one set here then it will be removed\n     * after execution. This value defaults to true.\n     *\n     * @param {*} value The new value to check for when executing listeners.\n     * @return {Object} Current instance of EventEmitter for chaining.\n     */\n    proto.setOnceReturnValue = function setOnceReturnValue(value) {\n        this._onceReturnValue = value;\n        return this;\n    };\n\n    /**\n     * Fetches the current value to check against when executing listeners. If\n     * the listeners return value matches this one then it should be removed\n     * automatically. It will return true by default.\n     *\n     * @return {*|Boolean} The current value to check for or the default, true.\n     * @api private\n     */\n    proto._getOnceReturnValue = function _getOnceReturnValue() {\n        if (this.hasOwnProperty('_onceReturnValue')) {\n            return this._onceReturnValue;\n        }\n        else {\n            return true;\n        }\n    };\n\n    /**\n     * Fetches the events object and creates one if required.\n     *\n     * @return {Object} The events storage object.\n     * @api private\n     */\n    proto._getEvents = function _getEvents() {\n        return this._events || (this._events = {});\n    };\n\n    /**\n     * Reverts the global {@link EventEmitter} to its previous value and returns a reference to this version.\n     *\n     * @return {Function} Non conflicting EventEmitter class.\n     */\n    EventEmitter.noConflict = function noConflict() {\n        exports.EventEmitter = originalGlobalValue;\n        return EventEmitter;\n    };\n\n    // Expose the class either via AMD, CommonJS or the global object\n    if (true) {\n        !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {\n            return EventEmitter;\n        }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));\n    }\n    else if (typeof module === 'object' && module.exports){\n        module.exports = EventEmitter;\n    }\n    else {\n        exports.EventEmitter = EventEmitter;\n    }\n}.call(this));\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/wolfy87-eventemitter/EventEmitter.js\n ** module id = 6\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/wolfy87-eventemitter/EventEmitter.js?");
+	var __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * EventEmitter v4.2.11 - git.io/ee
+	 * Unlicense - http://unlicense.org/
+	 * Oliver Caldwell - http://oli.me.uk/
+	 * @preserve
+	 */
+
+	;(function () {
+	    'use strict';
+
+	    /**
+	     * Class for managing events.
+	     * Can be extended to provide event functionality in other classes.
+	     *
+	     * @class EventEmitter Manages event registering and emitting.
+	     */
+	    function EventEmitter() {}
+
+	    // Shortcuts to improve speed and size
+	    var proto = EventEmitter.prototype;
+	    var exports = this;
+	    var originalGlobalValue = exports.EventEmitter;
+
+	    /**
+	     * Finds the index of the listener for the event in its storage array.
+	     *
+	     * @param {Function[]} listeners Array of listeners to search through.
+	     * @param {Function} listener Method to look for.
+	     * @return {Number} Index of the specified listener, -1 if not found
+	     * @api private
+	     */
+	    function indexOfListener(listeners, listener) {
+	        var i = listeners.length;
+	        while (i--) {
+	            if (listeners[i].listener === listener) {
+	                return i;
+	            }
+	        }
+
+	        return -1;
+	    }
+
+	    /**
+	     * Alias a method while keeping the context correct, to allow for overwriting of target method.
+	     *
+	     * @param {String} name The name of the target method.
+	     * @return {Function} The aliased method
+	     * @api private
+	     */
+	    function alias(name) {
+	        return function aliasClosure() {
+	            return this[name].apply(this, arguments);
+	        };
+	    }
+
+	    /**
+	     * Returns the listener array for the specified event.
+	     * Will initialise the event object and listener arrays if required.
+	     * Will return an object if you use a regex search. The object contains keys for each matched event. So /ba[rz]/ might return an object containing bar and baz. But only if you have either defined them with defineEvent or added some listeners to them.
+	     * Each property in the object response is an array of listener functions.
+	     *
+	     * @param {String|RegExp} evt Name of the event to return the listeners from.
+	     * @return {Function[]|Object} All listener functions for the event.
+	     */
+	    proto.getListeners = function getListeners(evt) {
+	        var events = this._getEvents();
+	        var response;
+	        var key;
+
+	        // Return a concatenated array of all matching events if
+	        // the selector is a regular expression.
+	        if (evt instanceof RegExp) {
+	            response = {};
+	            for (key in events) {
+	                if (events.hasOwnProperty(key) && evt.test(key)) {
+	                    response[key] = events[key];
+	                }
+	            }
+	        }
+	        else {
+	            response = events[evt] || (events[evt] = []);
+	        }
+
+	        return response;
+	    };
+
+	    /**
+	     * Takes a list of listener objects and flattens it into a list of listener functions.
+	     *
+	     * @param {Object[]} listeners Raw listener objects.
+	     * @return {Function[]} Just the listener functions.
+	     */
+	    proto.flattenListeners = function flattenListeners(listeners) {
+	        var flatListeners = [];
+	        var i;
+
+	        for (i = 0; i < listeners.length; i += 1) {
+	            flatListeners.push(listeners[i].listener);
+	        }
+
+	        return flatListeners;
+	    };
+
+	    /**
+	     * Fetches the requested listeners via getListeners but will always return the results inside an object. This is mainly for internal use but others may find it useful.
+	     *
+	     * @param {String|RegExp} evt Name of the event to return the listeners from.
+	     * @return {Object} All listener functions for an event in an object.
+	     */
+	    proto.getListenersAsObject = function getListenersAsObject(evt) {
+	        var listeners = this.getListeners(evt);
+	        var response;
+
+	        if (listeners instanceof Array) {
+	            response = {};
+	            response[evt] = listeners;
+	        }
+
+	        return response || listeners;
+	    };
+
+	    /**
+	     * Adds a listener function to the specified event.
+	     * The listener will not be added if it is a duplicate.
+	     * If the listener returns true then it will be removed after it is called.
+	     * If you pass a regular expression as the event name then the listener will be added to all events that match it.
+	     *
+	     * @param {String|RegExp} evt Name of the event to attach the listener to.
+	     * @param {Function} listener Method to be called when the event is emitted. If the function returns true then it will be removed after calling.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.addListener = function addListener(evt, listener) {
+	        var listeners = this.getListenersAsObject(evt);
+	        var listenerIsWrapped = typeof listener === 'object';
+	        var key;
+
+	        for (key in listeners) {
+	            if (listeners.hasOwnProperty(key) && indexOfListener(listeners[key], listener) === -1) {
+	                listeners[key].push(listenerIsWrapped ? listener : {
+	                    listener: listener,
+	                    once: false
+	                });
+	            }
+	        }
+
+	        return this;
+	    };
+
+	    /**
+	     * Alias of addListener
+	     */
+	    proto.on = alias('addListener');
+
+	    /**
+	     * Semi-alias of addListener. It will add a listener that will be
+	     * automatically removed after its first execution.
+	     *
+	     * @param {String|RegExp} evt Name of the event to attach the listener to.
+	     * @param {Function} listener Method to be called when the event is emitted. If the function returns true then it will be removed after calling.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.addOnceListener = function addOnceListener(evt, listener) {
+	        return this.addListener(evt, {
+	            listener: listener,
+	            once: true
+	        });
+	    };
+
+	    /**
+	     * Alias of addOnceListener.
+	     */
+	    proto.once = alias('addOnceListener');
+
+	    /**
+	     * Defines an event name. This is required if you want to use a regex to add a listener to multiple events at once. If you don't do this then how do you expect it to know what event to add to? Should it just add to every possible match for a regex? No. That is scary and bad.
+	     * You need to tell it what event names should be matched by a regex.
+	     *
+	     * @param {String} evt Name of the event to create.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.defineEvent = function defineEvent(evt) {
+	        this.getListeners(evt);
+	        return this;
+	    };
+
+	    /**
+	     * Uses defineEvent to define multiple events.
+	     *
+	     * @param {String[]} evts An array of event names to define.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.defineEvents = function defineEvents(evts) {
+	        for (var i = 0; i < evts.length; i += 1) {
+	            this.defineEvent(evts[i]);
+	        }
+	        return this;
+	    };
+
+	    /**
+	     * Removes a listener function from the specified event.
+	     * When passed a regular expression as the event name, it will remove the listener from all events that match it.
+	     *
+	     * @param {String|RegExp} evt Name of the event to remove the listener from.
+	     * @param {Function} listener Method to remove from the event.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.removeListener = function removeListener(evt, listener) {
+	        var listeners = this.getListenersAsObject(evt);
+	        var index;
+	        var key;
+
+	        for (key in listeners) {
+	            if (listeners.hasOwnProperty(key)) {
+	                index = indexOfListener(listeners[key], listener);
+
+	                if (index !== -1) {
+	                    listeners[key].splice(index, 1);
+	                }
+	            }
+	        }
+
+	        return this;
+	    };
+
+	    /**
+	     * Alias of removeListener
+	     */
+	    proto.off = alias('removeListener');
+
+	    /**
+	     * Adds listeners in bulk using the manipulateListeners method.
+	     * If you pass an object as the second argument you can add to multiple events at once. The object should contain key value pairs of events and listeners or listener arrays. You can also pass it an event name and an array of listeners to be added.
+	     * You can also pass it a regular expression to add the array of listeners to all events that match it.
+	     * Yeah, this function does quite a bit. That's probably a bad thing.
+	     *
+	     * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to add to multiple events at once.
+	     * @param {Function[]} [listeners] An optional array of listener functions to add.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.addListeners = function addListeners(evt, listeners) {
+	        // Pass through to manipulateListeners
+	        return this.manipulateListeners(false, evt, listeners);
+	    };
+
+	    /**
+	     * Removes listeners in bulk using the manipulateListeners method.
+	     * If you pass an object as the second argument you can remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.
+	     * You can also pass it an event name and an array of listeners to be removed.
+	     * You can also pass it a regular expression to remove the listeners from all events that match it.
+	     *
+	     * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to remove from multiple events at once.
+	     * @param {Function[]} [listeners] An optional array of listener functions to remove.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.removeListeners = function removeListeners(evt, listeners) {
+	        // Pass through to manipulateListeners
+	        return this.manipulateListeners(true, evt, listeners);
+	    };
+
+	    /**
+	     * Edits listeners in bulk. The addListeners and removeListeners methods both use this to do their job. You should really use those instead, this is a little lower level.
+	     * The first argument will determine if the listeners are removed (true) or added (false).
+	     * If you pass an object as the second argument you can add/remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.
+	     * You can also pass it an event name and an array of listeners to be added/removed.
+	     * You can also pass it a regular expression to manipulate the listeners of all events that match it.
+	     *
+	     * @param {Boolean} remove True if you want to remove listeners, false if you want to add.
+	     * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to add/remove from multiple events at once.
+	     * @param {Function[]} [listeners] An optional array of listener functions to add/remove.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.manipulateListeners = function manipulateListeners(remove, evt, listeners) {
+	        var i;
+	        var value;
+	        var single = remove ? this.removeListener : this.addListener;
+	        var multiple = remove ? this.removeListeners : this.addListeners;
+
+	        // If evt is an object then pass each of its properties to this method
+	        if (typeof evt === 'object' && !(evt instanceof RegExp)) {
+	            for (i in evt) {
+	                if (evt.hasOwnProperty(i) && (value = evt[i])) {
+	                    // Pass the single listener straight through to the singular method
+	                    if (typeof value === 'function') {
+	                        single.call(this, i, value);
+	                    }
+	                    else {
+	                        // Otherwise pass back to the multiple function
+	                        multiple.call(this, i, value);
+	                    }
+	                }
+	            }
+	        }
+	        else {
+	            // So evt must be a string
+	            // And listeners must be an array of listeners
+	            // Loop over it and pass each one to the multiple method
+	            i = listeners.length;
+	            while (i--) {
+	                single.call(this, evt, listeners[i]);
+	            }
+	        }
+
+	        return this;
+	    };
+
+	    /**
+	     * Removes all listeners from a specified event.
+	     * If you do not specify an event then all listeners will be removed.
+	     * That means every event will be emptied.
+	     * You can also pass a regex to remove all events that match it.
+	     *
+	     * @param {String|RegExp} [evt] Optional name of the event to remove all listeners for. Will remove from every event if not passed.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.removeEvent = function removeEvent(evt) {
+	        var type = typeof evt;
+	        var events = this._getEvents();
+	        var key;
+
+	        // Remove different things depending on the state of evt
+	        if (type === 'string') {
+	            // Remove all listeners for the specified event
+	            delete events[evt];
+	        }
+	        else if (evt instanceof RegExp) {
+	            // Remove all events matching the regex.
+	            for (key in events) {
+	                if (events.hasOwnProperty(key) && evt.test(key)) {
+	                    delete events[key];
+	                }
+	            }
+	        }
+	        else {
+	            // Remove all listeners in all events
+	            delete this._events;
+	        }
+
+	        return this;
+	    };
+
+	    /**
+	     * Alias of removeEvent.
+	     *
+	     * Added to mirror the node API.
+	     */
+	    proto.removeAllListeners = alias('removeEvent');
+
+	    /**
+	     * Emits an event of your choice.
+	     * When emitted, every listener attached to that event will be executed.
+	     * If you pass the optional argument array then those arguments will be passed to every listener upon execution.
+	     * Because it uses `apply`, your array of arguments will be passed as if you wrote them out separately.
+	     * So they will not arrive within the array on the other side, they will be separate.
+	     * You can also pass a regular expression to emit to all events that match it.
+	     *
+	     * @param {String|RegExp} evt Name of the event to emit and execute listeners for.
+	     * @param {Array} [args] Optional array of arguments to be passed to each listener.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.emitEvent = function emitEvent(evt, args) {
+	        var listenersMap = this.getListenersAsObject(evt);
+	        var listeners;
+	        var listener;
+	        var i;
+	        var key;
+	        var response;
+
+	        for (key in listenersMap) {
+	            if (listenersMap.hasOwnProperty(key)) {
+	                listeners = listenersMap[key].slice(0);
+	                i = listeners.length;
+
+	                while (i--) {
+	                    // If the listener returns true then it shall be removed from the event
+	                    // The function is executed either with a basic call or an apply if there is an args array
+	                    listener = listeners[i];
+
+	                    if (listener.once === true) {
+	                        this.removeListener(evt, listener.listener);
+	                    }
+
+	                    response = listener.listener.apply(this, args || []);
+
+	                    if (response === this._getOnceReturnValue()) {
+	                        this.removeListener(evt, listener.listener);
+	                    }
+	                }
+	            }
+	        }
+
+	        return this;
+	    };
+
+	    /**
+	     * Alias of emitEvent
+	     */
+	    proto.trigger = alias('emitEvent');
+
+	    /**
+	     * Subtly different from emitEvent in that it will pass its arguments on to the listeners, as opposed to taking a single array of arguments to pass on.
+	     * As with emitEvent, you can pass a regex in place of the event name to emit to all events that match it.
+	     *
+	     * @param {String|RegExp} evt Name of the event to emit and execute listeners for.
+	     * @param {...*} Optional additional arguments to be passed to each listener.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.emit = function emit(evt) {
+	        var args = Array.prototype.slice.call(arguments, 1);
+	        return this.emitEvent(evt, args);
+	    };
+
+	    /**
+	     * Sets the current value to check against when executing listeners. If a
+	     * listeners return value matches the one set here then it will be removed
+	     * after execution. This value defaults to true.
+	     *
+	     * @param {*} value The new value to check for when executing listeners.
+	     * @return {Object} Current instance of EventEmitter for chaining.
+	     */
+	    proto.setOnceReturnValue = function setOnceReturnValue(value) {
+	        this._onceReturnValue = value;
+	        return this;
+	    };
+
+	    /**
+	     * Fetches the current value to check against when executing listeners. If
+	     * the listeners return value matches this one then it should be removed
+	     * automatically. It will return true by default.
+	     *
+	     * @return {*|Boolean} The current value to check for or the default, true.
+	     * @api private
+	     */
+	    proto._getOnceReturnValue = function _getOnceReturnValue() {
+	        if (this.hasOwnProperty('_onceReturnValue')) {
+	            return this._onceReturnValue;
+	        }
+	        else {
+	            return true;
+	        }
+	    };
+
+	    /**
+	     * Fetches the events object and creates one if required.
+	     *
+	     * @return {Object} The events storage object.
+	     * @api private
+	     */
+	    proto._getEvents = function _getEvents() {
+	        return this._events || (this._events = {});
+	    };
+
+	    /**
+	     * Reverts the global {@link EventEmitter} to its previous value and returns a reference to this version.
+	     *
+	     * @return {Function} Non conflicting EventEmitter class.
+	     */
+	    EventEmitter.noConflict = function noConflict() {
+	        exports.EventEmitter = originalGlobalValue;
+	        return EventEmitter;
+	    };
+
+	    // Expose the class either via AMD, CommonJS or the global object
+	    if (true) {
+	        !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
+	            return EventEmitter;
+	        }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    }
+	    else if (typeof module === 'object' && module.exports){
+	        module.exports = EventEmitter;
+	    }
+	    else {
+	        exports.EventEmitter = EventEmitter;
+	    }
+	}.call(this));
+
 
 /***/ },
 /* 7 */
-/*!*****************************!*\
-  !*** ./src/proxy/upload.js ***!
-  \*****************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-10T17:15:58+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T14:56:23+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar pu = __webpack_require__(/*! ./util */ 4);\nvar Proxy = __webpack_require__(/*! ./index */ 5);\n\nvar flag = 'NEJ-UPLOAD-RESULT:';\nvar cache = {};\n\nfunction ProxyUpload(options) {\n  var self = this;\n  self.init();\n  Proxy.call(self, options);\n}\n\nvar sp = Proxy.prototype;\nvar pro = ProxyUpload.prototype = Object.create(sp);\n\npro.init = function () {\n  var init = false;\n  function onMessage(event) {\n    var data = event.data;\n    if (data.indexOf(flag) !== 0) {\n      return;\n    }\n    data = JSON.parse(data.replace(flag, ''));\n    var key = data.key;\n    var proxy = cache[key];\n    if (!proxy) {\n      return;\n    }\n    delete cache[key];\n    data.result = decodeURIComponent(data.result || '');\n    proxy.onLoad(data.result);\n  }\n  function initMessage() {\n    if (!init) {\n      init = true;\n      util.on(window, 'message', onMessage);\n    }\n  }\n  return function () {\n    initMessage();\n  };\n}();\n\npro.doSend = function () {\n  var self = this;\n  var options = self.options;\n  var key = self.key = util.uniqueID();\n  cache[key] = self;\n  // create form\n  var form = self.form = util.html2node('<form style=\"display:none;\"></form>');\n  document.body.appendChild(form);\n  form.target = key;\n  form.method = 'POST';\n  form.enctype = 'multipart/form-data';\n  form.encoding = 'multipart/form-data';\n  var url = options.url;\n  var sep = util.genUrlSep(url);\n  form.action = url + sep + '_proxy_=form';\n  // 处理参数\n  var data = options.data;\n  var files = [];\n  var fileClones = [];\n  if (data) {\n    pu.getKeys(data, options.putFileAtEnd).forEach(function (key) {\n      var value = data[key];\n      if (value.tagName && value.tagName.toUpperCase() === 'INPUT') {\n        if (value.type === 'file') {\n          var file = value;\n          var fileClone = file.cloneNode(true);\n          file.parentNode.insertBefore(fileClone, file);\n          var name = util.dataset(file, 'name');\n          if (name) {\n            file.name = name;\n          }\n          form.appendChild(file);\n          // Remove the HTML5 form attribute from the input\n          file.setAttribute('form', '');\n          file.removeAttribute('form');\n          files.push(value);\n          fileClones.push(fileClone);\n        }\n      } else {\n        var input = util.html2node('<input type=\"hidden\"/>');\n        input.name = key;\n        input.value = value;\n        form.appendChild(input);\n      }\n    });\n  }\n  function restoreFiles() {\n    // 将 input 放回原处\n    files.forEach(function (file, index) {\n      var fileClone = fileClones[index];\n      file.name = fileClone.name;\n      file.setAttribute('form', fileClone.getAttribute('form'));\n      fileClone.parentNode.replaceChild(file, fileClone);\n    });\n  }\n  // create iframe\n  var iframe = self.iframe = util.createIframe({\n    name: key,\n    onload: function onload() {\n      // check aborted\n      if (self.aborted) {\n        restoreFiles();\n        return;\n      }\n      util.on(iframe, 'load', self.checkResult.bind(self));\n      form.submit();\n      restoreFiles();\n      self.afterSend();\n    }\n  });\n};\n\n// same domain upload result check\npro.checkResult = function () {\n  var self = this;\n  var body;\n  var text;\n  try {\n    body = self.iframe.contentWindow.document.body;\n    text = (body.innerText || body.textContent || '').trim();\n    // if same domain with upload proxy html, use post message path\n    if (text.indexOf(flag) >= 0 || body.innerHTML.indexOf(flag) >= 0) {\n      return;\n    }\n  } catch (e) {\n    // ignore if not same domain\n    console.error('ignore', e);\n    return;\n  }\n  self.onLoad(text);\n};\n\npro.onLoad = function (result) {\n  var self = this;\n  sp.onLoad.call(self, {\n    status: 200,\n    result: result\n  });\n  // do the destroy work\n  util.remove(self.form);\n  util.remove(self.iframe);\n  sp.destroy.call(self);\n};\n\n// do nothing when destroy, this will let the iframe load, so we can restoreFiles.\n// pro.destroy = function() {\n//     var self = this\n//     util.remove(self.form)\n//     util.remove(self.iframe)\n//     sp.destroy.call(self)\n// }\n\npro.abort = function () {\n  var self = this;\n  self.aborted = true;\n  delete cache[self.key];\n  sp.abort.call(self);\n};\n\nmodule.exports = ProxyUpload;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/proxy/upload.js\n ** module id = 7\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/proxy/upload.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-10T17:15:58+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T14:56:23+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var pu = __webpack_require__(4);
+	var Proxy = __webpack_require__(5);
+
+	var flag = 'NEJ-UPLOAD-RESULT:';
+	var cache = {};
+
+	function ProxyUpload(options) {
+	  var self = this;
+	  self.init();
+	  Proxy.call(self, options);
+	}
+
+	var sp = Proxy.prototype;
+	var pro = ProxyUpload.prototype = Object.create(sp);
+
+	pro.init = function () {
+	  var init = false;
+	  function onMessage(event) {
+	    var data = event.data;
+	    if (data.indexOf(flag) !== 0) {
+	      return;
+	    }
+	    data = JSON.parse(data.replace(flag, ''));
+	    var key = data.key;
+	    var proxy = cache[key];
+	    if (!proxy) {
+	      return;
+	    }
+	    delete cache[key];
+	    data.result = decodeURIComponent(data.result || '');
+	    proxy.onLoad(data.result);
+	  }
+	  function initMessage() {
+	    if (!init) {
+	      init = true;
+	      util.on(window, 'message', onMessage);
+	    }
+	  }
+	  return function () {
+	    initMessage();
+	  };
+	}();
+
+	pro.doSend = function () {
+	  var self = this;
+	  var options = self.options;
+	  var key = self.key = util.uniqueID();
+	  cache[key] = self;
+	  // create form
+	  var form = self.form = util.html2node('<form style="display:none;"></form>');
+	  document.body.appendChild(form);
+	  form.target = key;
+	  form.method = 'POST';
+	  form.enctype = 'multipart/form-data';
+	  form.encoding = 'multipart/form-data';
+	  var url = options.url;
+	  var sep = util.genUrlSep(url);
+	  form.action = url + sep + '_proxy_=form';
+	  // 处理参数
+	  var data = options.data;
+	  var files = [];
+	  var fileClones = [];
+	  if (data) {
+	    pu.getKeys(data, options.putFileAtEnd).forEach(function (key) {
+	      var value = data[key];
+	      if (value.tagName && value.tagName.toUpperCase() === 'INPUT') {
+	        if (value.type === 'file') {
+	          var file = value;
+	          var fileClone = file.cloneNode(true);
+	          file.parentNode.insertBefore(fileClone, file);
+	          var name = util.dataset(file, 'name');
+	          if (name) {
+	            file.name = name;
+	          }
+	          form.appendChild(file);
+	          // Remove the HTML5 form attribute from the input
+	          file.setAttribute('form', '');
+	          file.removeAttribute('form');
+	          files.push(value);
+	          fileClones.push(fileClone);
+	        }
+	      } else {
+	        var input = util.html2node('<input type="hidden"/>');
+	        input.name = key;
+	        input.value = value;
+	        form.appendChild(input);
+	      }
+	    });
+	  }
+	  function restoreFiles() {
+	    // 将 input 放回原处
+	    files.forEach(function (file, index) {
+	      var fileClone = fileClones[index];
+	      file.name = fileClone.name;
+	      file.setAttribute('form', fileClone.getAttribute('form'));
+	      fileClone.parentNode.replaceChild(file, fileClone);
+	    });
+	  }
+	  // create iframe
+	  var iframe = self.iframe = util.createIframe({
+	    name: key,
+	    onload: function onload() {
+	      // check aborted
+	      if (self.aborted) {
+	        restoreFiles();
+	        return;
+	      }
+	      util.on(iframe, 'load', self.checkResult.bind(self));
+	      form.submit();
+	      restoreFiles();
+	      self.afterSend();
+	    }
+	  });
+	};
+
+	// same domain upload result check
+	pro.checkResult = function () {
+	  var self = this;
+	  var body;
+	  var text;
+	  try {
+	    body = self.iframe.contentWindow.document.body;
+	    text = (body.innerText || body.textContent || '').trim();
+	    // if same domain with upload proxy html, use post message path
+	    if (text.indexOf(flag) >= 0 || body.innerHTML.indexOf(flag) >= 0) {
+	      return;
+	    }
+	  } catch (e) {
+	    // ignore if not same domain
+	    console.error('ignore', e);
+	    return;
+	  }
+	  self.onLoad(text);
+	};
+
+	pro.onLoad = function (result) {
+	  var self = this;
+	  sp.onLoad.call(self, {
+	    status: 200,
+	    result: result
+	  });
+	  // do the destroy work
+	  util.remove(self.form);
+	  util.remove(self.iframe);
+	  sp.destroy.call(self);
+	};
+
+	// do nothing when destroy, this will let the iframe load, so we can restoreFiles.
+	// pro.destroy = function() {
+	//     var self = this
+	//     util.remove(self.form)
+	//     util.remove(self.iframe)
+	//     sp.destroy.call(self)
+	// }
+
+	pro.abort = function () {
+	  var self = this;
+	  self.aborted = true;
+	  delete cache[self.key];
+	  sp.abort.call(self);
+	};
+
+	module.exports = ProxyUpload;
 
 /***/ },
 /* 8 */
-/*!****************************!*\
-  !*** ./src/proxy/frame.js ***!
-  \****************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-10T17:15:53+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T14:56:28+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar Proxy = __webpack_require__(/*! ./index */ 5);\n\nvar cache = {};\n\nfunction ProxyFrame(options) {\n  var self = this;\n  self.init();\n  Proxy.call(self, options);\n}\n\nvar sp = Proxy.prototype;\nvar pro = ProxyFrame.prototype = Object.create(sp);\n\npro.init = function () {\n  var flag = 'NEJ-AJAX-DATA:';\n  var init = false;\n  function onMessage(event) {\n    var data = event.data;\n    if (data.indexOf(flag) !== 0) {\n      return;\n    }\n    data = JSON.parse(data.replace(flag, ''));\n    var key = data.key;\n    var proxy = cache[key];\n    if (!proxy) {\n      return;\n    }\n    delete cache[key];\n    data.result = decodeURIComponent(data.result || '');\n    proxy.onLoad(data);\n  }\n  function initMessage() {\n    if (!init) {\n      init = true;\n      util.on(window, 'message', onMessage);\n    }\n  }\n  return function () {\n    initMessage();\n  };\n}();\n\npro.doSend = function () {\n  var self = this;\n  var options = self.options;\n  var origin = util.url2origin(options.url);\n  var proxyUrl = options.proxyUrl || origin + '/res/nej_proxy_frame.html';\n  var frame = cache[proxyUrl];\n  // callback list\n  if (util.isArray(frame)) {\n    frame.push(self.doSend.bind(self, options));\n    return;\n  }\n  // build frame proxy\n  if (!frame) {\n    cache[proxyUrl] = [self.doSend.bind(self, options)];\n    util.createIframe({\n      src: proxyUrl,\n      onload: function onload(event) {\n        var cbs = cache[proxyUrl];\n        cache[proxyUrl] = util.target(event).contentWindow;\n        cbs.forEach(function (cb) {\n          try {\n            cb();\n          } catch (e) {\n            // ignore\n          }\n        });\n      }\n    });\n    return;\n  }\n  // check aborted\n  if (self.aborted) {\n    return;\n  }\n  // send message to frame\n  var key = self.key = util.uniqueID();\n  cache[key] = self;\n  var data = util.fetch({\n    method: 'GET',\n    url: '',\n    data: null,\n    headers: {},\n    timeout: 0\n  }, options);\n  data.key = key;\n  frame.postMessage(JSON.stringify(data), '*');\n  self.afterSend();\n};\n\npro.abort = function () {\n  var self = this;\n  self.aborted = true;\n  delete cache[self.key];\n  sp.abort.call(self);\n};\n\nmodule.exports = ProxyFrame;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/proxy/frame.js\n ** module id = 8\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/proxy/frame.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-10T17:15:53+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T14:56:28+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var Proxy = __webpack_require__(5);
+
+	var cache = {};
+
+	function ProxyFrame(options) {
+	  var self = this;
+	  self.init();
+	  Proxy.call(self, options);
+	}
+
+	var sp = Proxy.prototype;
+	var pro = ProxyFrame.prototype = Object.create(sp);
+
+	pro.init = function () {
+	  var flag = 'NEJ-AJAX-DATA:';
+	  var init = false;
+	  function onMessage(event) {
+	    var data = event.data;
+	    if (data.indexOf(flag) !== 0) {
+	      return;
+	    }
+	    data = JSON.parse(data.replace(flag, ''));
+	    var key = data.key;
+	    var proxy = cache[key];
+	    if (!proxy) {
+	      return;
+	    }
+	    delete cache[key];
+	    data.result = decodeURIComponent(data.result || '');
+	    proxy.onLoad(data);
+	  }
+	  function initMessage() {
+	    if (!init) {
+	      init = true;
+	      util.on(window, 'message', onMessage);
+	    }
+	  }
+	  return function () {
+	    initMessage();
+	  };
+	}();
+
+	pro.doSend = function () {
+	  var self = this;
+	  var options = self.options;
+	  var origin = util.url2origin(options.url);
+	  var proxyUrl = options.proxyUrl || origin + '/res/nej_proxy_frame.html';
+	  var frame = cache[proxyUrl];
+	  // callback list
+	  if (util.isArray(frame)) {
+	    frame.push(self.doSend.bind(self, options));
+	    return;
+	  }
+	  // build frame proxy
+	  if (!frame) {
+	    cache[proxyUrl] = [self.doSend.bind(self, options)];
+	    util.createIframe({
+	      src: proxyUrl,
+	      onload: function onload(event) {
+	        var cbs = cache[proxyUrl];
+	        cache[proxyUrl] = util.target(event).contentWindow;
+	        cbs.forEach(function (cb) {
+	          try {
+	            cb();
+	          } catch (e) {
+	            // ignore
+	          }
+	        });
+	      }
+	    });
+	    return;
+	  }
+	  // check aborted
+	  if (self.aborted) {
+	    return;
+	  }
+	  // send message to frame
+	  var key = self.key = util.uniqueID();
+	  cache[key] = self;
+	  var data = util.fetch({
+	    method: 'GET',
+	    url: '',
+	    data: null,
+	    headers: {},
+	    timeout: 0
+	  }, options);
+	  data.key = key;
+	  frame.postMessage(JSON.stringify(data), '*');
+	  self.afterSend();
+	};
+
+	pro.abort = function () {
+	  var self = this;
+	  self.aborted = true;
+	  delete cache[self.key];
+	  sp.abort.call(self);
+	};
+
+	module.exports = ProxyFrame;
 
 /***/ },
 /* 9 */
-/*!*********************!*\
-  !*** ./src/json.js ***!
-  \*********************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-06T16:44:36+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T15:04:06+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar ajax = __webpack_require__(/*! ./ajax */ 1);\n\nvar json = function () {\n  var regJson = /json/i;\n  var regPost = /post/i;\n  return function (url, options) {\n    options = options || {};\n    var data = options.data = options.data || {};\n    // parse headers\n    var headers = options.headers = options.headers || {};\n    var accept = util.checkWithDefault(headers, 'Accept', 'application/json');\n    var contentType = util.checkWithDefault(headers, 'Content-Type', 'application/json');\n    // response data format\n    if (regJson.test(accept)) {\n      options.type = 'json';\n    }\n    // post data\n    if (regPost.test(options.method) && regJson.test(contentType)) {\n      options.data = JSON.stringify(data);\n    }\n    return ajax(url, options);\n  };\n}();\n\nutil.mixin(json, ajax);\n\najax.json = json;\n\nmodule.exports = json;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/json.js\n ** module id = 9\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/json.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-06T16:44:36+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T15:04:06+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var ajax = __webpack_require__(1);
+
+	var json = function () {
+	  var regJson = /json/i;
+	  var regPost = /post/i;
+	  return function (url, options) {
+	    options = options || {};
+	    var data = options.data = options.data || {};
+	    // parse headers
+	    var headers = options.headers = options.headers || {};
+	    var accept = util.checkWithDefault(headers, 'Accept', 'application/json');
+	    var contentType = util.checkWithDefault(headers, 'Content-Type', 'application/json');
+	    // response data format
+	    if (regJson.test(accept)) {
+	      options.type = 'json';
+	    }
+	    // post data
+	    if (regPost.test(options.method) && regJson.test(contentType)) {
+	      options.data = JSON.stringify(data);
+	    }
+	    return ajax(url, options);
+	  };
+	}();
+
+	util.mixin(json, ajax);
+
+	ajax.json = json;
+
+	module.exports = json;
 
 /***/ },
 /* 10 */
-/*!***********************!*\
-  !*** ./src/upload.js ***!
-  \***********************/
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\n/**\n* @Author: Zhang Yingya(hzzhangyingya) <zyy>\n* @Date:   2016-01-15T10:22:01+08:00\n* @Email:  zyy7259@gmail.com\n* @Last modified by:   zyy\n* @Last modified time: 2016-08-01T14:56:15+08:00\n*/\n\nvar util = __webpack_require__(/*! zoro-base */ 2);\nvar ajax = __webpack_require__(/*! ./ajax */ 1);\n\nvar upload = function upload(url, options) {\n  options.method = 'POST';\n  options.headers = options.headers || {};\n  options.headers['Content-Type'] = 'multipart/form-data';\n  options.timeout = 0;\n  options.type = options.type || 'json';\n  return ajax(url, options);\n};\n\nutil.mixin(upload, ajax);\n\najax.upload = upload;\n\nmodule.exports = upload;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./src/upload.js\n ** module id = 10\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./src/upload.js?");
+	'use strict';
+
+	/**
+	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
+	* @Date:   2016-01-15T10:22:01+08:00
+	* @Email:  zyy7259@gmail.com
+	* @Last modified by:   zyy
+	* @Last modified time: 2016-08-01T14:56:15+08:00
+	*/
+
+	var util = __webpack_require__(2);
+	var ajax = __webpack_require__(1);
+
+	var upload = function upload(url, options) {
+	  options.method = 'POST';
+	  options.headers = options.headers || {};
+	  options.headers['Content-Type'] = 'multipart/form-data';
+	  options.timeout = 0;
+	  options.type = options.type || 'json';
+	  return ajax(url, options);
+	};
+
+	util.mixin(upload, ajax);
+
+	ajax.upload = upload;
+
+	module.exports = upload;
 
 /***/ }
 /******/ ])

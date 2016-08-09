@@ -82,7 +82,7 @@ var config = {
         root: 'ZoroBase',
         amd: 'ZoroBase',
         commonjs2: 'zoro-base',
-        commonjs: 'zoro-base',
+        commonjs: 'zoro-base'
       }
     }
   ],
@@ -98,10 +98,18 @@ var config = {
 var isProduction = env.isProduction()
 if (!isProduction) {
   // sourceMap 相关
+  config.output.filename = config.output.filename.replace('.js', '.dev.js')
   config.output.pathinfo = true
   config.devtool = 'eval'
 } else {
-  Array.prototype.push.apply(config.plugins, [
+  config = [config, Object.assign({}, config), Object.assign({}, config)]
+  config[0].output = Object.assign({}, config[0].output)
+  config[0].plugins = config[0].plugins.slice(0)
+  config[1].output = Object.assign({}, config[1].output)
+  config[1].output.filename = config[1].output.filename.replace('.js', '.min.js')
+  config[2].output = Object.assign({}, config[2].output)
+  config[2].output.filename = config[2].output.filename.replace('.js', '.' + pjson.version + '.min.js')
+  Array.prototype.push.apply(config[1].plugins, [
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({
       compress: {
@@ -113,10 +121,6 @@ if (!isProduction) {
     new webpack.optimize.LimitChunkCountPlugin({maxChunks: 15}),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 10000})
   ])
-  config = [config, Object.assign({}, config)]
-  config[0].output = Object.assign({}, config[0].output)
-  config[0].output.filename = config[0].output.filename.replace('.js', '.min.js')
-  config[1].output.filename = config[1].output.filename.replace('.js', '.' + pjson.version + '.min.js')
 }
 
 module.exports = config
