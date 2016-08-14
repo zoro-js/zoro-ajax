@@ -98,7 +98,6 @@ var config = {
 var isProduction = env.isProduction()
 if (!isProduction) {
   // sourceMap 相关
-  config.output.filename = config.output.filename.replace('.js', '.dev.js')
   config.output.pathinfo = true
   config.devtool = 'eval'
 } else {

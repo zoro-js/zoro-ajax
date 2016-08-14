@@ -1145,9 +1145,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // 将 input 放回原处
 	    files.forEach(function (file, index) {
 	      var fileClone = fileClones[index];
-	      file.name = fileClone.name;
-	      file.setAttribute('form', fileClone.getAttribute('form'));
-	      fileClone.parentNode.replaceChild(file, fileClone);
+	      // just in case, fuck ie 8
+	      if (fileClone.parentNode) {
+	        file.name = fileClone.name;
+	        file.setAttribute('form', fileClone.getAttribute('form'));
+	        fileClone.parentNode.replaceChild(file, fileClone);
+	      }
 	    });
 	  }
 	  // create iframe
