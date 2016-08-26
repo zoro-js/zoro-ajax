@@ -4,6 +4,8 @@
   "description": "ajax",
   "main": "dist/zoro-ajax.js",
   "scripts": {
+    "unit": "karma start build/karma.unit.config.js",
+    "unit:build": "webpack --config build/webpack.test.config.js",
     "env": "env",
     "clean": "run-p -lns clean:*",
     "clean:css": "rimraf dist/css",
