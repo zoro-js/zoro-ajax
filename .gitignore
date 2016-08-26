@@ -3,8 +3,8 @@
 *stats.json
 
 # map
-*js.map
-*css.map
+# *js.map
+# *css.map
 
 # sublime files
 *.sublime*

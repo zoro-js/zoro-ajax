@@ -49,7 +49,7 @@ function clear (sn) {
 
 function parseExtData (c, data) {
   data = {
-    data: data
+    data
   }
   var keys = c.result.headers
   if (keys) {
@@ -68,7 +68,7 @@ function callback (sn, type, data) {
   }
   clear(sn)
   var event = {
-    type: type,
+    type,
     result: data
   }
   doFilter(event)

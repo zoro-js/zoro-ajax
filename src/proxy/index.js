@@ -67,7 +67,7 @@ pro.send = function () {
       self.doSend()
     } catch (error) {
       console.error('ignore error server error,', error)
-      self.onError('serverError', '请求失败:' + e.message)
+      self.onError('serverError', '请求失败:' + error.message)
     }
   }, 0)
 }
@@ -89,8 +89,8 @@ pro.onLoad = function (event) {
   // check status
   if (('' + status).indexOf('2') !== 0) {
     self.onError('serverError', '服务器返回异常状态', {
-      status: status,
-      result: result
+      status,
+      result
     })
     return
   }

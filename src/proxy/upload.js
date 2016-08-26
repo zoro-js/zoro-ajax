@@ -107,7 +107,7 @@ pro.doSend = function () {
   // create iframe
   var iframe = self.iframe = util.createIframe({
     name: key,
-    onload: function () {
+    onload () {
       // check aborted
       if (self.aborted) {
         restoreFiles()
@@ -145,7 +145,7 @@ pro.onLoad = function (result) {
   var self = this
   sp.onLoad.call(self, {
     status: 200,
-    result: result
+    result
   })
   // do the destroy work
   util.remove(self.form)

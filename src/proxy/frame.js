@@ -63,7 +63,7 @@ pro.doSend = function () {
     ]
     util.createIframe({
       src: proxyUrl,
-      onload: function (event) {
+      onload (event) {
         var cbs = cache[proxyUrl]
         cache[proxyUrl] = util.target(event).contentWindow
         cbs.forEach(function (cb) {
