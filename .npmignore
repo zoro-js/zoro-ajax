@@ -3,5 +3,5 @@ server
 src
 test
 third
-.eslint*
-webpack*
+*eslint*
+*webpack*

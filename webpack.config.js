@@ -1,4 +1,16 @@
 module.exports = require('zoro-kit/build/webpack.config.lib.js')({
-  filename: 'zoro-ajax.js',
-  library: 'ZoroAjax'
+  output: {
+    filename: 'zoro-ajax.js',
+    library: 'ZoroAjax'
+  },
+  externals: [
+    {
+      'zoro-base': {
+        root: 'ZoroBase',
+        amd: 'ZoroBase',
+        commonjs2: 'zoro-base',
+        commonjs: 'zoro-base'
+      }
+    }
+  ]
 })
