@@ -98,7 +98,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var mode = options.mode;
 	  var Constructor = ProxyXhr;
 	  // 如果是 IE 8/9, 那么使用 iframe 模式
-	  if (util.undef(FormData)) {
+	  if (!self.FormData) {
 	    mode = 'iframe';
 	  }
 	  if (mode === 'iframe') {
