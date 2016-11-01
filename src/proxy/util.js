@@ -9,7 +9,7 @@ var util = {}
 
 util.isFileInput = function (value) {
   return (value.tagName && value.tagName.toUpperCase() === 'INPUT') ||
-    (window.Blob && value instanceof window.Blob)
+    (self.Blob && value instanceof self.Blob)
 }
 
 /**

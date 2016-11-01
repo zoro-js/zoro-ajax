@@ -38,7 +38,7 @@ pro.init = (function () {
   function initMessage () {
     if (!init) {
       init = true
-      util.on(window, 'message', onMessage)
+      util.on(self, 'message', onMessage)
     }
   }
   return function () {
