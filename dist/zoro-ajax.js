@@ -98,7 +98,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var mode = options.mode;
 	  var Constructor = ProxyXhr;
 	  // 如果是 IE 8/9, 那么使用 iframe 模式
-	  if (!self.FormData) {
+	  var window = util.getGlobal();
+	  if (!window.FormData) {
 	    mode = 'iframe';
 	  }
 	  if (mode === 'iframe') {
@@ -965,10 +966,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	* @Last Modified time: 2016-06-03 16:13:45
 	*/
 	
+	var u = __webpack_require__(2);
+	
 	var util = {};
 	
 	util.isFileInput = function (value) {
-	  return value.tagName && value.tagName.toUpperCase() === 'INPUT' || self.Blob && value instanceof self.Blob;
+	  var window = u.getGlobal();
+	  return value.tagName && value.tagName.toUpperCase() === 'INPUT' || window.Blob && value instanceof window.Blob;
 	};
 	
 	/**
@@ -1697,7 +1701,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function initMessage() {
 	    if (!init) {
 	      init = true;
-	      util.on(self, 'message', onMessage);
+	      util.on(util.getGlobal(), 'message', onMessage);
 	    }
 	  }
 	  return function () {
@@ -1887,7 +1891,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function initMessage() {
 	    if (!init) {
 	      init = true;
-	      util.on(self, 'message', onMessage);
+	      util.on(util.getGlobal(), 'message', onMessage);
 	    }
 	  }
 	  return function () {

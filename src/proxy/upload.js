@@ -38,7 +38,7 @@ pro.init = (function () {
   function initMessage () {
     if (!init) {
       init = true
-      util.on(self, 'message', onMessage)
+      util.on(util.getGlobal(), 'message', onMessage)
     }
   }
   return function () {

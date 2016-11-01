@@ -5,11 +5,14 @@
 * @Last Modified time: 2016-06-03 16:13:45
 */
 
+var u = require('zoro-base')
+
 var util = {}
 
 util.isFileInput = function (value) {
+  var window = u.getGlobal()
   return (value.tagName && value.tagName.toUpperCase() === 'INPUT') ||
-    (self.Blob && value instanceof self.Blob)
+    (window.Blob && value instanceof window.Blob)
 }
 
 /**

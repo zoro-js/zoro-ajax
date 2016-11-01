@@ -18,7 +18,8 @@ function getProxyByMode (options) {
   var mode = options.mode
   var Constructor = ProxyXhr
   // 如果是 IE 8/9, 那么使用 iframe 模式
-  if (!self.FormData) {
+  var window = util.getGlobal()
+  if (!window.FormData) {
     mode = 'iframe'
   }
   if (mode === 'iframe') {
