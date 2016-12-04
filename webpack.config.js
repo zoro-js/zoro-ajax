@@ -1,4 +1,4 @@
-module.exports = require('zoro-kit/build/webpack.config.lib.js')({
+const config = require('zoro-kit/build/webpack.config.lib.js')({
   output: {
     filename: 'zoro-ajax.js',
     library: 'ZoroAjax'
@@ -14,3 +14,5 @@ module.exports = require('zoro-kit/build/webpack.config.lib.js')({
     }
   ]
 })
+
+module.exports = config

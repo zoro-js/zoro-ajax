@@ -14,6 +14,8 @@
               for(var i=0,l=_listeners.length;i<l;i++)
                   try{_listeners[i].call(null,_event);}catch(e){}
           };
+          // TODO for test
+          window.postMessage = 0
           if (!!window.postMessage){
               window.doPostMessage = function(_window,_options){
                   _options = _options||{};
@@ -128,7 +130,7 @@
           // access control
           var _hasPermission = function(){
               var _ref = document.referrer||'';
-              if (!_ref||!whitelist.length) 
+              if (!_ref||!whitelist.length)
                   return !1;
               for(var i=0,l=whitelist.length,_item;i<l;i++){
                   _item = whitelist[i];

@@ -99,7 +99,7 @@ var isProduction = env.isProduction()
 if (!isProduction) {
   // sourceMap 相关
   config.output.pathinfo = true
-  config.devtool = 'eval'
+  // config.devtool = 'eval'
 } else {
   config = [config, Object.assign({}, config), Object.assign({}, config)]
   config[0].output = Object.assign({}, config[0].output)

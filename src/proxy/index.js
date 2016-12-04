@@ -33,7 +33,7 @@ function Proxy (options) {
     data: null,
     headers: {},
     cookie: false,
-    timeout: 6000,
+    timeout: 60000,
     type: 'text',
     // 文件上传用到的参数
     form: null,

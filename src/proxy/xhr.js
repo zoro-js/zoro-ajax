@@ -34,7 +34,7 @@ pro.doSend = function () {
     xhr.upload.onprogress = self.onProgress.bind(self)
     xhr.upload.onload = self.onProgress.bind(self)
     var data = options.data
-    options.data = new FormData()
+    options.data = new window.FormData()
     if (data) {
       pu.getKeys(data, options.putFileAtEnd).forEach(function (key) {
         var value = data[key]

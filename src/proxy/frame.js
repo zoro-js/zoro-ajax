@@ -1,12 +1,5 @@
-/**
-* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-* @Date:   2016-01-10T17:15:53+08:00
-* @Email:  zyy7259@gmail.com
-* @Last modified by:   zyy
-* @Last modified time: 2016-08-01T14:56:28+08:00
-*/
-
 var util = require('zoro-base')
+var message = require('../message')
 var Proxy = require('./index')
 
 var cache = {}
@@ -37,7 +30,12 @@ pro.init = (function () {
   function initMessage () {
     if (!init) {
       init = true
-      util.on(util.getGlobal(), 'message', onMessage)
+      const window = util.getGlobal()
+      if (window.postMessage) {
+        util.on(window, 'message', onMessage)
+      } else {
+        message.addMsgListener(onMessage)
+      }
     }
   }
   return function () {
@@ -71,6 +69,7 @@ pro.doSend = function () {
             cb()
           } catch (e) {
             // ignore
+            console.error(e)
           }
         })
       }
@@ -90,7 +89,7 @@ pro.doSend = function () {
     timeout: 0
   }, options)
   data.key = key
-  frame.postMessage(JSON.stringify(data), '*')
+  message.postMessage(frame, {data})
   self.afterSend()
 }
 

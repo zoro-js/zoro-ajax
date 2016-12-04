@@ -1,6 +1,6 @@
 {
   "name": "zoro-ajax",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "ajax",
   "main": "dist/zoro-ajax.js",
   "scripts": {
@@ -25,6 +25,7 @@
     "watch:js": "npm run build:js --silent -- --watch",
     "watch-:lint": "watch 'npm run lint' -du --interval=0.25 --ignoreDirectoryPattern='/third|submodule|dist|node_modules/i' --filter=build/watchFilter.eslint.js",
     "dev": "npm run watch",
+    "dev:nosm": "NO_SOURCE_MAP=true npm run watch",
     "preprod": "npm run clean-dist",
     "prod": "cross-env NODE_ENV=production npm run build:js",
     "server": "puer & npm run dev",
@@ -43,16 +44,20 @@
   },
   "homepage": "https://github.com/zoro-js/zoro-ajax#readme",
   "dependencies": {
+    "es5-shim": "^4.5.9",
+    "es6-shim": "^0.35.1",
+    "json3": "^3.3.2",
+    "prettyjson": "^1.2.1",
     "zoro-base": "*"
   },
   "devDependencies": {
+    "express": "*",
+    "fs-extra": "*",
     "jasmine-core": "^2.4.1",
     "karma": "^1.2.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-jasmine": "^1.0.2",
     "karma-webpack": "^1.7.0",
-    "express": "*",
-    "fs-extra": "*",
     "multer": "*",
     "wolfy87-eventemitter": "*",
     "zoro-kit": "*"
