@@ -80,7 +80,7 @@ const checkNameQueue = (function () {
   }
 })()
 
-const startTimer = (() => {
+const startTimer = message.startTimer = (() => {
   let flag = false
   return () => {
     if (!flag) {
@@ -113,7 +113,11 @@ message.postMessage = (w, options = {}) => {
       d: escape(options)
     })
   } else {
-    w.postMessage(options.data, options.origin)
+    let data = options.data
+    if (!window.FormData) {
+      data = JSON.stringify(data)
+    }
+    w.postMessage(data, options.origin)
   }
 }
 

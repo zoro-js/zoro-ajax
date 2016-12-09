@@ -1,11 +1,3 @@
-/**
-* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-* @Date:   2016-01-06T16:44:26+08:00
-* @Email:  zyy7259@gmail.com
-* @Last modified by:   zyy
-* @Last modified time: 2016-08-01T15:04:59+08:00
-*/
-
 var util = require('zoro-base')
 var ProxyXhr = require('./proxy/xhr')
 var ProxyUpload = require('./proxy/upload')
@@ -17,7 +9,7 @@ var doFilter = util.f
 function getProxyByMode (options) {
   var mode = options.mode
   var Constructor = ProxyXhr
-  // 如果是 IE 8/9, 那么使用 iframe 模式
+  // 如果是 IE 7/8/9 并且跨域, 那么使用 iframe 模式
   var window = util.getGlobal()
   if (!window.FormData) {
     mode = 'iframe'
@@ -32,7 +24,7 @@ function getProxy (options) {
   var upload = options.upload = (options.headers || util.o)['Content-Type'] === 'multipart/form-data'
   var origin1 = (location.protocol + '//' + location.host).toLowerCase()
   var origin2 = util.url2origin(options.url)
-  var cors = origin1 !== origin2
+  var cors = options.cors = origin1 !== origin2
   if (!upload && !cors && !options.mode) {
     return new ProxyXhr(options)
   }

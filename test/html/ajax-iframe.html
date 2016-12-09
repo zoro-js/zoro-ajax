@@ -16,6 +16,7 @@
     <script src='/node_modules/zoro-base/dist/zoro-base.js'></script>
     <script src='/dist/zoro-ajax.js'></script>
     <script>
+      // 模拟 IE7
       var postMessage = window.postMessage
       window.postMessage = null
       var url = 'https://' + location.hostname + ':9527/json'
@@ -23,7 +24,7 @@
         mode: 'iframe',
         onbeforesend: function (options) {},
         onload: function (obj) {
-          console.log(obj)
+          console.log(JSON.stringify(obj))
         },
         onerror: function (err) {
           console.err(err)

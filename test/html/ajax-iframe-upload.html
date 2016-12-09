@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+    <meta http-equiv='x-ua-compatible' content='ie=edge'>
+    <title>ajax iframe upload</title>
+  </head>
+  <body>
+    <div id='app'></div>
+    <div id='app'></div>
+    <form id="form">
+      <input type='file' class='form-control' name='file' id='file'>
+    </form>
+    <button type='button' id="btn">upload</button>
+    <script src='/node_modules/json3/lib/json3.js'></script>
+    <script src='/node_modules/es5-shim/es5-shim.js'></script>
+    <script src='/node_modules/es5-shim/es5-sham.js'></script>
+    <script src='/node_modules/es6-shim/es6-shim.js'></script>
+    <script src='/node_modules/es6-shim/es6-sham.js'></script>
+    <script src='/node_modules/zoro-base/dist/zoro-base.js'></script>
+    <script src='/dist/zoro-ajax.js'></script>
+    <script>
+      var $btn = document.getElementById('btn')
+      var $file = document.getElementById('file')
+      if ($btn.attachEvent) {
+        $btn.attachEvent('onclick', upload)
+      } else {
+        $btn.addEventListener('click', upload)
+      }
+      function upload () {
+        console.log('upload')
+        var url = 'http://' + location.hostname + ':7259/upload'
+        ZoroAjax.upload(url, {
+          data: {
+            file: $file
+          },
+          mode: 'iframe',
+          onbeforesend: function (options) {},
+          onload: function (obj) {
+            console.log(JSON.stringify(obj))
+          },
+          onerror: function (err) {
+            console.err(err)
+          }
+        })
+      }
+    </script>
+  </body>
+</html>

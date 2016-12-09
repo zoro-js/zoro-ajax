@@ -78,18 +78,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	/**
-	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-	* @Date:   2016-01-06T16:44:26+08:00
-	* @Email:  zyy7259@gmail.com
-	* @Last modified by:   zyy
-	* @Last modified time: 2016-08-01T15:04:59+08:00
-	*/
-	
 	var util = __webpack_require__(2);
 	var ProxyXhr = __webpack_require__(3);
 	var ProxyUpload = __webpack_require__(7);
-	var ProxyFrame = __webpack_require__(8);
+	var ProxyFrame = __webpack_require__(10);
 	
 	var cache = {};
 	var doFilter = util.f;
@@ -97,7 +89,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function getProxyByMode(options) {
 	  var mode = options.mode;
 	  var Constructor = ProxyXhr;
-	  // 如果是 IE 8/9, 那么使用 iframe 模式
+	  // 如果是 IE 7/8/9 并且跨域, 那么使用 iframe 模式
 	  var window = util.getGlobal();
 	  if (!window.FormData) {
 	    mode = 'iframe';
@@ -112,7 +104,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var upload = options.upload = (options.headers || util.o)['Content-Type'] === 'multipart/form-data';
 	  var origin1 = (location.protocol + '//' + location.host).toLowerCase();
 	  var origin2 = util.url2origin(options.url);
-	  var cors = origin1 !== origin2;
+	  var cors = options.cors = origin1 !== origin2;
 	  if (!upload && !cors && !options.mode) {
 	    return new ProxyXhr(options);
 	  }
@@ -417,14 +409,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	
-	/**
-	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-	* @Date:   2016-01-08T16:38:53+08:00
-	* @Email:  zyy7259@gmail.com
-	* @Last modified by:   zyy
-	* @Last modified time: 2016-08-01T15:03:56+08:00
-	*/
 	
 	var util = __webpack_require__(2);
 	var f = util.f;
@@ -1059,17 +1043,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	/**
-	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-	* @Date:   2016-01-10T17:15:58+08:00
-	* @Email:  zyy7259@gmail.com
-	* @Last modified by:   zyy
-	* @Last modified time: 2016-08-01T14:56:23+08:00
-	*/
-	
 	var util = __webpack_require__(2);
 	var pu = __webpack_require__(4);
 	var Proxy = __webpack_require__(5);
+	var message = __webpack_require__(8);
 	
 	var flag = 'NEJ-UPLOAD-RESULT:';
 	var cache = {};
@@ -1103,7 +1080,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function initMessage() {
 	    if (!init) {
 	      init = true;
-	      util.on(util.getGlobal(), 'message', onMessage);
+	      var window = util.getGlobal();
+	      if (window.postMessage) {
+	        util.on(window, 'message', onMessage);
+	      } else {
+	        message.addMsgListener(onMessage);
+	        message.startTimer();
+	      }
 	    }
 	  }
 	  return function () {
@@ -1114,7 +1097,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	pro.doSend = function () {
 	  var self = this;
 	  var options = self.options;
-	  var key = self.key = util.uniqueID();
+	  var key = self.key = 'zoro-ajax-upload-iframe-' + util.uniqueID();
 	  cache[key] = self;
 	  // create form
 	  var form = self.form = util.html2node('<form style="display:none;"></form>');
@@ -1143,9 +1126,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            file.name = name;
 	          }
 	          form.appendChild(file);
-	          // Remove the HTML5 form attribute from the input
-	          file.setAttribute('form', '');
-	          file.removeAttribute('form');
+	          if (util.isFunction(file.setAttribute)) {
+	            // Remove the HTML5 form attribute from the input
+	            file.setAttribute('form', '');
+	            file.removeAttribute('form');
+	          }
 	          files.push(value);
 	          fileClones.push(fileClone);
 	        }
@@ -1164,7 +1149,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // just in case, fuck ie 8
 	      if (fileClone.parentNode) {
 	        file.name = fileClone.name;
-	        file.setAttribute('form', fileClone.getAttribute('form'));
+	        if (util.isFunction(file.setAttribute)) {
+	          file.setAttribute('form', fileClone.getAttribute('form'));
+	        }
 	        fileClone.parentNode.replaceChild(file, fileClone);
 	      }
 	    });
@@ -1218,12 +1205,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	// do nothing when destroy, this will let the iframe load, so we can restoreFiles.
-	// pro.destroy = function() {
-	//     var self = this
-	//     util.remove(self.form)
-	//     util.remove(self.iframe)
-	//     sp.destroy.call(self)
-	// }
+	pro.destroy = function () {
+	  util.remove(this.iframe);
+	  util.remove(this.form);
+	};
 	
 	pro.abort = function () {
 	  var self = this;
@@ -1240,8 +1225,154 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
+	var _util = __webpack_require__(9);
+	
+	var _util2 = _interopRequireDefault(_util);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+	
+	var window = _util2['default'].getGlobal();
+	var message = {};
+	
+	var _self = window.name || '_parent';
+	var _listeners = [];
+	var _key = 'MSG|';
+	var _queue = [];
+	
+	// for post message and onmessage event
+	message.addMsgListener = function (cb) {
+	  _listeners.push(cb);
+	};
+	
+	var onMessage = function onMessage(_event) {
+	  for (var i = 0, l = _listeners.length; i < l; i++) {
+	    try {
+	      _listeners[i].call(null, _event);
+	    } catch (e) {}
+	  }
+	};
+	
+	var formatOrigin = function () {
+	  var _reg = /^([\w]+?:\/\/.*?(?=\/|$))/i;
+	  return function (_origin) {
+	    _origin = _origin || '';
+	    if (_reg.test(_origin)) {
+	      return RegExp.$1;
+	    }
+	    return '*';
+	  };
+	}();
+	
+	// 检测window.name变化情况
+	var checkWindowName = function checkWindowName() {
+	  // check name
+	  var _name = unescape(window.name || '').trim();
+	  if (!_name || _name.indexOf(_key) !== 0) {
+	    return;
+	  }
+	  window.name = '';
+	  // check result
+	  var _result = _util2['default'].string2object(_name.replace(_key, ''), '|');
+	  var _origin = (_result.origin || '').toLowerCase();
+	  // check origin
+	  if (!!_origin && _origin !== '*' && location.href.toLowerCase().indexOf(_origin) !== 0) {
+	    return;
+	  }
+	  // dispatch onmessage event
+	  onMessage({
+	    data: JSON.parse(_result.data || 'null'),
+	    source: window.frames[_result.self] || _result.self,
+	    origin: formatOrigin(_result.ref || document.referrer)
+	  });
+	};
+	
+	var checkNameQueue = function () {
+	  var _checklist;
+	  var _hasItem = function _hasItem(_list, _item) {
+	    for (var i = 0, l = _list.length; i < l; i++) {
+	      if (_list[i] === _item) {
+	        return !0;
+	      }
+	    }
+	    return !1;
+	  };
+	  return function () {
+	    if (!_queue.length) return;
+	    _checklist = [];
+	    for (var i = _queue.length - 1, _map; i >= 0; i--) {
+	      _map = _queue[i];
+	      if (!_hasItem(_checklist, _map.w)) {
+	        _checklist.push(_map.w);
+	        _queue.splice(i, 1);
+	        // set window.name
+	        _map.w.name = _map.d;
+	      }
+	    }
+	    _checklist = null;
+	  };
+	}();
+	
+	var startTimer = message.startTimer = function () {
+	  var flag = false;
+	  return function () {
+	    if (!flag) {
+	      flag = true;
+	      if (!window.postMessage) {
+	        setInterval(checkNameQueue, 100);
+	        setInterval(checkWindowName, 20);
+	      }
+	    }
+	  };
+	}();
+	
+	message.postMessage = function (w) {
+	  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	
+	  _util2['default'].fillUndef(options, {
+	    origin: '*',
+	    source: _self
+	  });
+	  if (!window.postMessage) {
+	    startTimer();
+	    if (_util2['default'].isObject(options)) {
+	      var _result = {};
+	      _result.origin = options.origin || '';
+	      _result.ref = location.href;
+	      _result.self = options.source;
+	      _result.data = JSON.stringify(options.data);
+	      options = _key + _util2['default'].object2string(_result, '|', !0);
+	    }
+	    _queue.unshift({
+	      w: w,
+	      d: escape(options)
+	    });
+	  } else {
+	    var data = options.data;
+	    if (!window.FormData) {
+	      data = JSON.stringify(data);
+	    }
+	    w.postMessage(data, options.origin);
+	  }
+	};
+	
+	module.exports = message;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	module.exports = __webpack_require__(2);
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
 	var util = __webpack_require__(2);
-	var message = __webpack_require__(9);
+	var message = __webpack_require__(8);
 	var Proxy = __webpack_require__(5);
 	
 	var cache = {};
@@ -1347,148 +1478,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	module.exports = ProxyFrame;
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _util = __webpack_require__(10);
-	
-	var _util2 = _interopRequireDefault(_util);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-	
-	var window = _util2['default'].getGlobal();
-	var message = {};
-	
-	var _self = window.name || '_parent';
-	var _listeners = [];
-	var _key = 'MSG|';
-	var _queue = [];
-	
-	// for post message and onmessage event
-	message.addMsgListener = function (cb) {
-	  _listeners.push(cb);
-	};
-	
-	var onMessage = function onMessage(_event) {
-	  for (var i = 0, l = _listeners.length; i < l; i++) {
-	    try {
-	      _listeners[i].call(null, _event);
-	    } catch (e) {}
-	  }
-	};
-	
-	var formatOrigin = function () {
-	  var _reg = /^([\w]+?:\/\/.*?(?=\/|$))/i;
-	  return function (_origin) {
-	    _origin = _origin || '';
-	    if (_reg.test(_origin)) {
-	      return RegExp.$1;
-	    }
-	    return '*';
-	  };
-	}();
-	
-	// 检测window.name变化情况
-	var checkWindowName = function checkWindowName() {
-	  // check name
-	  var _name = unescape(window.name || '').trim();
-	  if (!_name || _name.indexOf(_key) !== 0) {
-	    return;
-	  }
-	  window.name = '';
-	  // check result
-	  var _result = _util2['default'].string2object(_name.replace(_key, ''), '|');
-	  var _origin = (_result.origin || '').toLowerCase();
-	  // check origin
-	  if (!!_origin && _origin !== '*' && location.href.toLowerCase().indexOf(_origin) !== 0) {
-	    return;
-	  }
-	  // dispatch onmessage event
-	  onMessage({
-	    data: JSON.parse(_result.data || 'null'),
-	    source: window.frames[_result.self] || _result.self,
-	    origin: formatOrigin(_result.ref || document.referrer)
-	  });
-	};
-	
-	var checkNameQueue = function () {
-	  var _checklist;
-	  var _hasItem = function _hasItem(_list, _item) {
-	    for (var i = 0, l = _list.length; i < l; i++) {
-	      if (_list[i] === _item) {
-	        return !0;
-	      }
-	    }
-	    return !1;
-	  };
-	  return function () {
-	    if (!_queue.length) return;
-	    _checklist = [];
-	    for (var i = _queue.length - 1, _map; i >= 0; i--) {
-	      _map = _queue[i];
-	      if (!_hasItem(_checklist, _map.w)) {
-	        _checklist.push(_map.w);
-	        _queue.splice(i, 1);
-	        // set window.name
-	        _map.w.name = _map.d;
-	      }
-	    }
-	    _checklist = null;
-	  };
-	}();
-	
-	var startTimer = function () {
-	  var flag = false;
-	  return function () {
-	    if (!flag) {
-	      flag = true;
-	      if (!window.postMessage) {
-	        setInterval(checkNameQueue, 100);
-	        setInterval(checkWindowName, 20);
-	      }
-	    }
-	  };
-	}();
-	
-	message.postMessage = function (w) {
-	  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-	
-	  _util2['default'].fillUndef(options, {
-	    origin: '*',
-	    source: _self
-	  });
-	  if (!window.postMessage) {
-	    startTimer();
-	    if (_util2['default'].isObject(options)) {
-	      var _result = {};
-	      _result.origin = options.origin || '';
-	      _result.ref = location.href;
-	      _result.self = options.source;
-	      _result.data = JSON.stringify(options.data);
-	      options = _key + _util2['default'].object2string(_result, '|', !0);
-	    }
-	    _queue.unshift({
-	      w: w,
-	      d: escape(options)
-	    });
-	  } else {
-	    w.postMessage(options.data, options.origin);
-	  }
-	};
-	
-	module.exports = message;
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	module.exports = __webpack_require__(2);
 
 /***/ },
 /* 11 */

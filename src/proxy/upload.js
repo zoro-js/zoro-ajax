@@ -1,14 +1,7 @@
-/**
-* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-* @Date:   2016-01-10T17:15:58+08:00
-* @Email:  zyy7259@gmail.com
-* @Last modified by:   zyy
-* @Last modified time: 2016-08-01T14:56:23+08:00
-*/
-
 var util = require('zoro-base')
 var pu = require('./util')
 var Proxy = require('./index')
+var message = require('../message')
 
 var flag = 'NEJ-UPLOAD-RESULT:'
 var cache = {}
@@ -38,7 +31,13 @@ pro.init = (function () {
   function initMessage () {
     if (!init) {
       init = true
-      util.on(util.getGlobal(), 'message', onMessage)
+      const window = util.getGlobal()
+      if (window.postMessage) {
+        util.on(window, 'message', onMessage)
+      } else {
+        message.addMsgListener(onMessage)
+        message.startTimer()
+      }
     }
   }
   return function () {
@@ -49,7 +48,7 @@ pro.init = (function () {
 pro.doSend = function () {
   var self = this
   var options = self.options
-  var key = self.key = util.uniqueID()
+  var key = self.key = 'zoro-ajax-upload-iframe-' + util.uniqueID()
   cache[key] = self
   // create form
   var form = self.form = util.html2node('<form style="display:none;"></form>')
@@ -78,9 +77,11 @@ pro.doSend = function () {
             file.name = name
           }
           form.appendChild(file)
-          // Remove the HTML5 form attribute from the input
-          file.setAttribute('form', '')
-          file.removeAttribute('form')
+          if (util.isFunction(file.setAttribute)) {
+            // Remove the HTML5 form attribute from the input
+            file.setAttribute('form', '')
+            file.removeAttribute('form')
+          }
           files.push(value)
           fileClones.push(fileClone)
         }
@@ -99,7 +100,9 @@ pro.doSend = function () {
       // just in case, fuck ie 8
       if (fileClone.parentNode) {
         file.name = fileClone.name
-        file.setAttribute('form', fileClone.getAttribute('form'))
+        if (util.isFunction(file.setAttribute)) {
+          file.setAttribute('form', fileClone.getAttribute('form'))
+        }
         fileClone.parentNode.replaceChild(file, fileClone)
       }
     })
@@ -154,12 +157,10 @@ pro.onLoad = function (result) {
 }
 
 // do nothing when destroy, this will let the iframe load, so we can restoreFiles.
-// pro.destroy = function() {
-//     var self = this
-//     util.remove(self.form)
-//     util.remove(self.iframe)
-//     sp.destroy.call(self)
-// }
+pro.destroy = function () {
+  util.remove(this.iframe)
+  util.remove(this.form)
+}
 
 pro.abort = function () {
   var self = this

@@ -1,6 +1,6 @@
 {
   "name": "zoro-ajax",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "ajax",
   "main": "dist/zoro-ajax.js",
   "scripts": {
@@ -48,7 +48,7 @@
     "es6-shim": "^0.35.1",
     "json3": "^3.3.2",
     "prettyjson": "^1.2.1",
-    "zoro-base": "*"
+    "zoro-base": "^1.0.29"
   },
   "devDependencies": {
     "express": "*",

@@ -44,7 +44,10 @@ app.get('/json', function (req, res) {
 
 app.post('/upload', upload.any(), function (req, res) {
   var result
-  var files = req.files
+  var files = req.files.map(file => {
+    delete file.buffer
+    return file
+  })
   var body = req.body
   var hasBody = Object.keys(body).length > 0
   if (req.query._proxy_ === 'form') {

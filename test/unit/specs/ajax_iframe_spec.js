@@ -15,7 +15,7 @@ var httpsProxyUrl = 'https://localhost:9527/res/nej_proxy_frame.html'
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 600 * 1000
 
 describe('frame', function () {
-  it('default', function (done) {
+  xit('default', function (done) {
     const postMessage = window.postMessage
     window.postMessage = null
     json(url, {

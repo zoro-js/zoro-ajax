@@ -1,11 +1,3 @@
-/**
-* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-* @Date:   2016-01-08T16:38:53+08:00
-* @Email:  zyy7259@gmail.com
-* @Last modified by:   zyy
-* @Last modified time: 2016-08-01T15:03:56+08:00
-*/
-
 var util = require('zoro-base')
 var f = util.f
 var EventEmitter = require('wolfy87-eventemitter')
