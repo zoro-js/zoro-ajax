@@ -30,10 +30,11 @@
       }
       function upload () {
         console.log('upload')
-        var url = 'http://' + location.hostname + ':7259/upload'
+        // var url = 'http://' + location.hostname + ':7259/upload'
+        var url = 'http://10.240.76.62:8081/website/upload'
         ZoroAjax.upload(url, {
           data: {
-            file: $file
+            cert: $file
           },
           mode: 'iframe',
           onbeforesend: function (options) {},

@@ -1,11 +1,3 @@
-/**
-* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-* @Date:   2016-01-06T16:44:36+08:00
-* @Email:  zyy7259@gmail.com
-* @Last modified by:   zyy
-* @Last modified time: 2016-08-01T15:04:06+08:00
-*/
-
 var util = require('zoro-base')
 var ajax = require('./ajax')
 
@@ -30,9 +22,5 @@ var json = (function () {
     return ajax(url, options)
   }
 }())
-
-util.mixin(json, ajax)
-
-ajax.json = json
 
 module.exports = json

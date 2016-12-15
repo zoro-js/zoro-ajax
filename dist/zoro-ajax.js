@@ -56,21 +56,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	/**
-	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-	* @Date:   2016-08-01T14:55:04+08:00
-	* @Email:  zyy7259@gmail.com
-	* @Last modified by:   zyy
-	* @Last modified time: 2016-08-01T15:22:04+08:00
-	*/
+	var ajax = __webpack_require__(1);
+	var json = __webpack_require__(11);
+	var upload = __webpack_require__(12);
 	
-	var obj = {
-	  ajax: __webpack_require__(1),
-	  json: __webpack_require__(11),
-	  upload: __webpack_require__(12)
-	};
+	ajax.json = json;
+	ajax.upload = upload;
 	
-	module.exports = obj;
+	module.exports = ajax;
 
 /***/ },
 /* 1 */
@@ -1485,14 +1478,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	/**
-	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-	* @Date:   2016-01-06T16:44:36+08:00
-	* @Email:  zyy7259@gmail.com
-	* @Last modified by:   zyy
-	* @Last modified time: 2016-08-01T15:04:06+08:00
-	*/
-	
 	var util = __webpack_require__(2);
 	var ajax = __webpack_require__(1);
 	
@@ -1518,10 +1503,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	}();
 	
-	util.mixin(json, ajax);
-	
-	ajax.json = json;
-	
 	module.exports = json;
 
 /***/ },
@@ -1530,15 +1511,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	/**
-	* @Author: Zhang Yingya(hzzhangyingya) <zyy>
-	* @Date:   2016-01-15T10:22:01+08:00
-	* @Email:  zyy7259@gmail.com
-	* @Last modified by:   zyy
-	* @Last modified time: 2016-08-01T14:56:15+08:00
-	*/
-	
-	var util = __webpack_require__(2);
 	var ajax = __webpack_require__(1);
 	
 	var upload = function upload(url, options) {
@@ -1549,10 +1521,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  options.type = options.type || 'json';
 	  return ajax(url, options);
 	};
-	
-	util.mixin(upload, ajax);
-	
-	ajax.upload = upload;
 	
 	module.exports = upload;
 

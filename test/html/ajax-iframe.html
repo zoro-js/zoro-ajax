@@ -20,7 +20,7 @@
       var postMessage = window.postMessage
       window.postMessage = null
       var url = 'https://' + location.hostname + ':9527/json'
-      ZoroAjax.ajax(url, {
+      ZoroAjax(url, {
         mode: 'iframe',
         onbeforesend: function (options) {},
         onload: function (obj) {
