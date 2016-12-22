@@ -6965,9 +6965,9 @@ yeast@0.1.2:
   version "0.1.2"
   resolved "http://registry.npm.taobao.org/yeast/download/yeast-0.1.2.tgz#008e06d8094320c372dbc2f8ed76a0ca6c8ac419"
 
-zoro-base@^1.0.30:
-  version "1.0.30"
-  resolved "http://registry.npm.taobao.org/zoro-base/download/zoro-base-1.0.30.tgz#3139297f6308db49968225109357128932ac5a6f"
+zoro-base@^1.0.31:
+  version "1.0.31"
+  resolved "http://registry.npm.taobao.org/zoro-base/download/zoro-base-1.0.31.tgz#570467c2eafdc99d8fe1267ad4fcd5be287716a0"
   dependencies:
     webpack-merge "^0.15.0"
 
