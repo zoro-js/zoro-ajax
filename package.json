@@ -1,6 +1,6 @@
 {
   "name": "zoro-ajax",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "ajax",
   "main": "dist/zoro-ajax.js",
   "scripts": {

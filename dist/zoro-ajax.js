@@ -95,9 +95,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function getProxy(options) {
 	  var upload = options.upload = (options.headers || util.o)['Content-Type'] === 'multipart/form-data';
-	  var origin1 = (location.protocol + '//' + location.host).toLowerCase();
-	  var origin2 = util.url2origin(options.url);
-	  var cors = options.cors = origin1 !== origin2;
+	  var cors = false;
+	  try {
+	    var origin1 = (location.protocol + '//' + location.host).toLowerCase();
+	    var origin2 = util.url2origin(options.url);
+	    cors = origin1 !== origin2;
+	  } catch (error) {
+	    // ignore error in weixin app
+	  }
+	  options.cors = cors;
 	  if (!upload && !cors && !options.mode) {
 	    return new ProxyXhr(options);
 	  }
